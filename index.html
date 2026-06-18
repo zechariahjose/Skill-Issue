@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL.learn — Learn SQL by Doing</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-mark">SQL</span><span class="logo-dot">.learn</span>
+    <div class="logo-tagline">Practice → Master</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Learn</div>
+    <a class="nav-item active" data-page="lessons" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Lessons
+      <span class="nav-badge">12</span>
+    </a>
+    <a class="nav-item" data-page="cheatsheet" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Cheat Sheet
+    </a>
+
+    <div class="nav-group-label">Practice</div>
+    <a class="nav-item" data-page="quiz" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Quizzes
+      <span class="nav-badge">4</span>
+    </a>
+    <a class="nav-item" data-page="sandbox" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      Sandbox
+    </a>
+    <a class="nav-item" data-page="challenges" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Challenges
+      <span class="nav-badge new">New</span>
+    </a>
+
+    <div class="nav-group-label">You</div>
+    <a class="nav-item" data-page="progress" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      My Progress
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-progress-label">
+      <span>Overall progress</span>
+      <span id="sidebar-progress-text">0 / 12</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="sidebar-progress-bar" style="width:0%"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+  <button class="hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-logo"><span class="logo-mark">SQL</span><span class="logo-dot">.learn</span></div>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- MAIN -->
+<main class="main" id="main">
+
+  <!-- =================== LESSONS PAGE =================== -->
+  <section class="page active" id="page-lessons">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Lessons</h1>
+        <p class="page-sub">12 lessons from beginner to advanced</p>
+      </div>
+    </div>
+
+    <div class="lesson-tabs" id="lesson-tabs">
+      <button class="ltab active" data-tab="basics">Basics</button>
+      <button class="ltab" data-tab="filtering">Filtering</button>
+      <button class="ltab" data-tab="joins">Joins</button>
+      <button class="ltab" data-tab="aggregates">Aggregates</button>
+    </div>
+
+    <div class="lesson-tab-content active" id="tab-basics">
+      <div class="lesson-grid" id="grid-basics"></div>
+    </div>
+    <div class="lesson-tab-content" id="tab-filtering">
+      <div class="lesson-grid" id="grid-filtering"></div>
+    </div>
+    <div class="lesson-tab-content" id="tab-joins">
+      <div class="lesson-grid" id="grid-joins"></div>
+    </div>
+    <div class="lesson-tab-content" id="tab-aggregates">
+      <div class="lesson-grid" id="grid-aggregates"></div>
+    </div>
+  </section>
+
+  <!-- =================== LESSON DETAIL =================== -->
+  <section class="page" id="page-lesson-detail">
+    <div class="page-header">
+      <button class="btn btn-ghost back-btn" id="lesson-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to lessons
+      </button>
+      <div class="lesson-detail-actions">
+        <button class="btn btn-success" id="mark-complete-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark complete
+        </button>
+        <button class="btn btn-primary" id="go-practice-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Try in Sandbox
+        </button>
+      </div>
+    </div>
+    <div class="lesson-detail-wrap">
+      <div class="lesson-body" id="lesson-body"></div>
+      <div class="lesson-quick-check" id="lesson-quick-check"></div>
+      <div class="lesson-nav-btns" id="lesson-nav-btns"></div>
+    </div>
+  </section>
+
+  <!-- =================== CHEAT SHEET =================== -->
+  <section class="page" id="page-cheatsheet">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">SQL Cheat Sheet</h1>
+        <p class="page-sub">Quick reference for every major SQL keyword</p>
+      </div>
+    </div>
+    <div class="cheatsheet-grid" id="cheatsheet-grid"></div>
+  </section>
+
+  <!-- =================== QUIZ HOME =================== -->
+  <section class="page" id="page-quiz">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Practice Quizzes</h1>
+        <p class="page-sub">5 questions per quiz — instant feedback on every answer</p>
+      </div>
+    </div>
+    <div class="lesson-grid" id="quiz-home-grid"></div>
+  </section>
+
+  <!-- =================== QUIZ ACTIVE =================== -->
+  <section class="page" id="page-quiz-active">
+    <div class="page-header quiz-active-header">
+      <button class="btn btn-ghost" id="quiz-back-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Quizzes
+      </button>
+      <div class="quiz-progress-wrap">
+        <span class="quiz-progress-label" id="quiz-progress-label">1 / 5</span>
+        <div class="progress-track" style="width:140px">
+          <div class="progress-fill" id="quiz-progress-fill" style="width:20%"></div>
+        </div>
+      </div>
+    </div>
+    <div id="quiz-question-area"></div>
+    <div id="quiz-result-area" style="display:none">
+      <div class="quiz-result-card">
+        <div class="result-score" id="result-score-display">0/5</div>
+        <div class="result-label" id="result-label-display">Quiz complete!</div>
+        <div class="result-btns">
+          <button class="btn btn-ghost" id="result-back-btn">Back to quizzes</button>
+          <button class="btn btn-primary" id="result-retry-btn">Try again</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SANDBOX =================== -->
+  <section class="page" id="page-sandbox">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">SQL Sandbox</h1>
+        <p class="page-sub">Live query runner — sample database with students, courses, and grades</p>
+      </div>
+    </div>
+    <div class="sandbox-layout">
+      <div class="sandbox-left">
+        <div class="schema-panel">
+          <div class="panel-label">Schema</div>
+          <div class="schema-table">
+            <div class="schema-table-name">students</div>
+            <div class="schema-cols">id · name · age · major</div>
+          </div>
+          <div class="schema-table">
+            <div class="schema-table-name">courses</div>
+            <div class="schema-cols">id · name · credits · teacher</div>
+          </div>
+          <div class="schema-table">
+            <div class="schema-table-name">grades</div>
+            <div class="schema-cols">student_id · course_id · grade</div>
+          </div>
+        </div>
+        <div class="panel-label" style="margin-top:16px">Quick queries</div>
+        <div class="quick-queries" id="quick-queries"></div>
+      </div>
+      <div class="sandbox-right">
+        <div class="editor-panel">
+          <div class="editor-toolbar">
+            <span class="editor-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              SQL Editor
+            </span>
+            <button class="btn btn-primary btn-run" id="run-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run
+            </button>
+          </div>
+          <textarea class="sql-editor" id="sql-editor" spellcheck="false">SELECT * FROM students;</textarea>
+        </div>
+        <div class="output-panel" id="output-panel">
+          <div class="output-placeholder">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Click <strong>Run</strong> to execute your query
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== CHALLENGES =================== -->
+  <section class="page" id="page-challenges">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Challenges</h1>
+        <p class="page-sub">Write SQL to solve real problems — your answer is checked automatically</p>
+      </div>
+    </div>
+    <div class="challenges-layout">
+      <div class="challenges-list" id="challenges-list"></div>
+      <div class="challenge-detail" id="challenge-detail">
+        <div class="challenge-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <p>Select a challenge to begin</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== PROGRESS =================== -->
+  <section class="page" id="page-progress">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Progress</h1>
+        <p class="page-sub">Track your learning journey</p>
+      </div>
+    </div>
+    <div class="progress-stats" id="progress-stats"></div>
+    <h2 class="section-heading">Lessons</h2>
+    <div class="progress-lesson-grid" id="progress-lessons"></div>
+    <h2 class="section-heading" style="margin-top:28px">Quiz scores</h2>
+    <div class="progress-quiz-list" id="progress-quizzes"></div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
