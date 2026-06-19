@@ -17,7 +17,3 @@ The site is centered on learning how databases work: tables, rows, columns, filt
 ## Current Learning Path
 
 - SQL & Relational Databases
-
-## Running The Website
-
-Open `index.html` in a browser. The project is a static site and does not require a build step.
