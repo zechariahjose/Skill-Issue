@@ -514,33 +514,64 @@ Math     |            2</pre>
     practice: { q: "What is a SQL view?", options: ["A saved SELECT query used like a virtual table", "A physical backup of a database", "An index on every table", "A command that deletes rows"], answer: 0, explain: "A view stores a query definition. It does not usually store its own data; it presents data from underlying tables." }
   },
   {
-    id: 17, tab: "advanced",
-    title: "SQL Injection & Parameters",
-    difficulty: "hard",
-    desc: "Understand unsafe input and safer prepared queries",
-    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-5"/></svg>`,
+    id: 18, tab: "advanced",
+    title: "INSERT Statements",
+    difficulty: "medium",
+    desc: "Add new rows to tables with proper data types",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>`,
     content: `
-<h2>SQL Injection & Parameters</h2>
-<p>SQL injection happens when user input is pasted directly into a SQL string and changes the meaning of the query.</p>
-<h3>Unsafe string building</h3>
-<pre><span class="cmt">-- Dangerous idea</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> users
-<span class="kw">WHERE</span> username = <span class="str">'</span> + userInput + <span class="str">'</span>;</pre>
-<p>If <code>userInput</code> contains SQL code, the database may run something you did not intend.</p>
-<h3>Prepared statements</h3>
-<p>Prepared statements separate SQL structure from values. The database treats user input as data, not executable SQL.</p>
-<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> users
-<span class="kw">WHERE</span> username = ?;</pre>
-<p>The <code>?</code> is a parameter placeholder. Your database library safely binds the user's value to it.</p>
-<h3>Practical rule</h3>
-<ul>
-  <li>Never build SQL by concatenating raw user input.</li>
-  <li>Use parameters or prepared statements.</li>
-  <li>Validate input for type and length before saving it.</li>
-</ul>
-<div class="note">Security is part of database skill. Good SQL is not only correct; it is safe to run with real user input.</div>
+<h2>INSERT INTO</h2>
+<p>The <code>INSERT INTO</code> statement adds new rows to a table. You provide the column names and values for the new record.</p>
+<h3>Basic Syntax</h3>
+<pre><span class="kw">INSERT INTO</span> table_name (col1, col2, col3)
+<span class="kw">VALUES</span> (<span class="val">'value1'</span>, <span class="val">100</span>, <span class="str">'2024-01-15'</span>);</pre>
+<h3>Multiple Rows</h3>
+<p>You can insert multiple rows in one statement:</p>
+<pre><span class="kw">INSERT INTO</span> students (name, age, major)
+<span class="kw">VALUES</span>
+  (<span class="str">'Frank'</span>, <span class="val">20</span>, <span class="str">'History'</span>),
+  (<span class="str">'Grace'</span>, <span class="val">21</span>, <span class="str">'Art'</span>),
+  (<span class="str">'Henry'</span>, <span class="val">22</span>, <span class="str">'Chemistry'</span>);</pre>
+<h3>Column Order and Defaults</h3>
+<p>You don't have to list every column. Unlisted columns use their DEFAULT value (if defined) or NULL:</p>
+<pre><span class="kw">INSERT INTO</span> students (name, age)
+<span class="kw">VALUES</span> (<span class="str">'Ivy'</span>, <span class="val">23</span>);</pre>
+<p>If the <code>major</code> column has a DEFAULT value, it's used. Otherwise, <code>major</code> is NULL.</p>
+<div class="note">💡 Always match data types. String values go in quotes. Numbers and dates don't. Use NULL for missing values only if the column allows it.</div>
 `,
-    practice: { q: "What is the safer way to include user input in SQL?", options: ["String concatenation", "Prepared statements with parameters", "Putting input in comments", "Using SELECT *"], answer: 1, explain: "Prepared statements keep the SQL structure separate from user-supplied values, preventing input from becoming executable SQL." }
+    practice: { q: "Which is correct syntax for inserting two rows?", options: ["INSERT INTO t VALUES (1,2) (3,4)", "INSERT INTO t (a,b) VALUES (1,2), (3,4)", "INSERT INTO t VALUES 1,2 AND 3,4", "INSERT t (a,b) 1,2 | 3,4"], answer: 1, explain: "Multiple rows use parentheses around each set of values, separated by commas." }
+  },
+  {
+    id: 19, tab: "advanced",
+    title: "UPDATE & DELETE Statements",
+    difficulty: "medium",
+    desc: "Modify and remove rows from a table",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+    content: `
+<h2>UPDATE and DELETE</h2>
+<p><code>UPDATE</code> modifies existing rows. <code>DELETE</code> removes them entirely.</p>
+<h3>UPDATE Syntax</h3>
+<pre><span class="kw">UPDATE</span> students
+<span class="kw">SET</span> age = <span class="val">21</span>, major = <span class="str">'Physics'</span>
+<span class="kw">WHERE</span> id = <span class="val">3</span>;</pre>
+<p>The WHERE clause is critical — without it, you update <em>every row</em> in the table!</p>
+<h3>Update with Calculations</h3>
+<pre><span class="kw">UPDATE</span> inventory
+<span class="kw">SET</span> price = price * <span class="val">1.1</span>  <span class="cmt">-- 10% increase</span>
+<span class="kw">WHERE</span> category = <span class="str">'electronics'</span>;</pre>
+<h3>DELETE Syntax</h3>
+<pre><span class="kw">DELETE FROM</span> students
+<span class="kw">WHERE</span> age < <span class="val">18</span>;</pre>
+<p>Again, the WHERE clause is essential. <code>DELETE FROM table;</code> with no WHERE deletes <em>all rows</em>.</p>
+<h3>Safe Practices</h3>
+<ul>
+  <li>Always test your WHERE condition with a SELECT first to confirm which rows match.</li>
+  <li>Make a backup before running DELETE on a production database.</li>
+  <li>Use transactions to roll back if something goes wrong.</li>
+</ul>
+<div class="note">⚠️ <strong>Critical:</strong> Missing WHERE clauses in UPDATE and DELETE are common mistakes that cause data loss. Always double-check!</div>
+`,
+    practice: { q: "What happens if you run UPDATE table SET col=5 with no WHERE clause?", options: ["Nothing, the query fails", "Only the first row is updated", "Every row in the table is updated", "The table is deleted"], answer: 2, explain: "Without a WHERE clause, UPDATE affects all rows. This is why WHERE is critical for safe data modification." }
   }
 ];
 
@@ -621,15 +652,15 @@ const QUIZZES = [
     ]
   },
   {
-    id: 6, title: "Indexes, Views & Security", difficulty: "hard",
-    desc: "Performance, reusable queries, and safe parameters",
-    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-5"/></svg>`,
+    id: 6, title: "INSERT, UPDATE, DELETE", difficulty: "medium",
+    desc: "Data modification: INSERT, UPDATE, DELETE statements and WHERE clauses",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
     questions: [
-      { q: "What is the main purpose of an index?", opts: ["Make searched rows faster to find","Delete duplicate data","Encrypt all tables","Store comments"], a: 0, exp: "Indexes help the database locate matching rows more efficiently, especially for WHERE and JOIN columns." },
-      { q: "What is a tradeoff of indexes?", opts: ["They make reads impossible","They can slow inserts and updates","They remove primary keys","They only work with text"], a: 1, exp: "Indexes must be maintained when data changes, so writes can become slower." },
-      { q: "What is a view?", opts: ["A saved SELECT query used like a virtual table","A required database password","A physical copy of every row","A temporary WHERE clause"], a: 0, exp: "A view stores a query definition and presents its result shape as something you can query." },
-      { q: "What causes SQL injection risk?", opts: ["Using uppercase keywords","Concatenating raw user input into SQL strings","Using SELECT with FROM","Adding aliases"], a: 1, exp: "Raw string concatenation can let user input change the SQL command itself." },
-      { q: "What is the safer replacement for concatenating user input?", opts: ["Prepared statements and parameters","ORDER BY user input directly","SELECT * always","DROP unused tables"], a: 0, exp: "Prepared statements separate SQL code from user values, preventing input from being executed as SQL." }
+      { q: "What is the basic syntax for inserting a row?", opts: ["INSERT table VALUES (...)","INSERT INTO table (cols) VALUES (...)","INSERT table SET col=val","ADD ROW to table"], a: 1, exp: "INSERT INTO table_name (columns) VALUES (values) is the standard syntax." },
+      { q: "Which clause prevents UPDATE from changing all rows?", opts: ["FILTER","WHERE","HAVING","LIMIT"], a: 1, exp: "WHERE specifies which rows to update. Without it, all rows are affected." },
+      { q: "What does DELETE FROM table; do?", opts: ["Removes the table structure","Deletes all rows from the table","Deletes one random row","Marks rows as deleted without removing them"], a: 1, exp: "DELETE FROM table; with no WHERE clause deletes every row. Backup first!" },
+      { q: "How do you insert multiple rows at once?", opts: ["Multiple INSERT statements","VALUES (row1), (row2), (row3)","INSERT row1; INSERT row2;","SELECT * then COPY"], a: 1, exp: "You can pass multiple value sets separated by commas in a single INSERT statement." },
+      { q: "How do you increase a price by 10% for all electronics?", opts: ["UPDATE inventory SET price = price + 10 WHERE category='electronics'","UPDATE inventory SET price = price * 1.1 WHERE category='electronics'","UPDATE electronics SET price + 0.1","UPDATE SET category=electronics AND price*1.1"], a: 1, exp: "Multiply by 1.1 to increase by 10%. Add would only add a fixed amount." }
     ]
   }
 ];
@@ -688,11 +719,46 @@ const CHALLENGES = [
     solution: "SELECT AVG(grade) AS avg_grade FROM grades;"
   },
   {
-    id: 7, title: "Courses with high credits", difficulty: "hard",
-    desc: "List all courses that have 3 or more credits, sorted by credits descending.",
-    hint: "Use WHERE with >= and ORDER BY with DESC.",
-    check: (rows) => rows.length >= 1 && rows.every(r => r.credits >= 3),
-    solution: "SELECT * FROM courses WHERE credits >= 3 ORDER BY credits DESC;"
+    id: 8, title: "Highest grade student", difficulty: "medium",
+    desc: "Find the student with the highest grade in the grades table.",
+    hint: "Use ORDER BY with DESC and LIMIT to get the top result.",
+    check: (rows) => rows.length === 1 && rows[0].hasOwnProperty('name') && rows[0].grade === 95,
+    solution: "SELECT s.name, g.grade FROM students s INNER JOIN grades g ON s.id = g.student_id ORDER BY g.grade DESC LIMIT 1;"
+  },
+  {
+    id: 9, title: "Students with no grades", difficulty: "hard",
+    desc: "Find all students who don't have any grades recorded.",
+    hint: "Use LEFT JOIN and check for NULL values.",
+    check: (rows) => rows.length >= 1 && rows[0].hasOwnProperty('name'),
+    solution: "SELECT s.name FROM students s LEFT JOIN grades g ON s.id = g.student_id WHERE g.student_id IS NULL;"
+  },
+  {
+    id: 10, title: "Courses sorted by credits", difficulty: "easy",
+    desc: "List all courses ordered by credits from highest to lowest.",
+    hint: "ORDER BY credits DESC",
+    check: (rows) => rows.length >= 4 && rows[0].credits >= rows[rows.length - 1].credits,
+    solution: "SELECT * FROM courses ORDER BY credits DESC;"
+  },
+  {
+    id: 11, title: "Count grades per student", difficulty: "hard",
+    desc: "Show each student's name and how many grades they have.",
+    hint: "Use GROUP BY and COUNT() with a JOIN.",
+    check: (rows) => rows.length >= 3 && rows[0].hasOwnProperty('grade_count'),
+    solution: "SELECT s.name, COUNT(g.grade) AS grade_count FROM students s LEFT JOIN grades g ON s.id = g.student_id GROUP BY s.id, s.name;"
+  },
+  {
+    id: 12, title: "Select with DISTINCT", difficulty: "medium",
+    desc: "Get a list of unique majors in the students table.",
+    hint: "Use DISTINCT to remove duplicates.",
+    check: (rows) => rows.length <= 5 && rows.every(r => r.hasOwnProperty('major')),
+    solution: "SELECT DISTINCT major FROM students;"
+  },
+  {
+    id: 13, title: "Students between ages", difficulty: "medium",
+    desc: "Find all students with age between 20 and 22 (inclusive).",
+    hint: "Use BETWEEN ... AND in the WHERE clause.",
+    check: (rows) => rows.length >= 2 && rows.every(r => r.age >= 20 && r.age <= 22),
+    solution: "SELECT * FROM students WHERE age BETWEEN 20 AND 22;"
   }
 ];
 
@@ -801,4 +867,360 @@ const SANDBOX_QUERIES = [
   { label: "All students + grades (LEFT)", sql: "SELECT s.name, g.grade\nFROM students s\nLEFT JOIN grades g ON s.id = g.student_id;" },
   { label: "Count per major",          sql: "SELECT major, COUNT(*) AS count\nFROM students\nGROUP BY major;" },
   { label: "Average grade",            sql: "SELECT AVG(grade) AS avg_grade\nFROM grades;" },
+];
+
+// ============================================================
+//  EXAMS
+// ============================================================
+const EXAMS = [
+  {
+    id: 0, title: "SQL Exam 1", difficulty: "medium",
+    desc: "Test your SQL skills: CREATE, ALTER, INSERT, SELECT, UPDATE, DELETE, DROP",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M8 3a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2H8V3z"/><path d="m9 14 2 2 4-5"/></svg>`,
+    sections: [
+      {
+        title: "CREATE TABLE (1–10)",
+        instructions: "Write the correct SQL statement for each scenario.",
+        questions: [
+          {
+            num: 1,
+            scenario: "A hospital HR system needs to store nurse shift assignments including shift ID, nurse first name, last name, certification level, department ID, and hourly wage. Create a table named nurse_shifts.",
+            answer: `CREATE TABLE nurse_shifts (
+  shift_id INT PRIMARY KEY,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  certification_level VARCHAR(50),
+  department_id INT,
+  hourly_wage DECIMAL(8,2)
+);`
+          },
+          {
+            num: 2,
+            scenario: "A logistics company needs to record drone delivery logs including flight ID, remaining battery capacity, payload weight, and delivery status. Create a table named drone_logs.",
+            answer: `CREATE TABLE drone_logs (
+  flight_id INT PRIMARY KEY,
+  battery_capacity DECIMAL(5,2),
+  payload_weight DECIMAL(8,2),
+  delivery_status VARCHAR(50)
+);`
+          },
+          {
+            num: 3,
+            scenario: "A marketing team needs to store promotional coupon codes, discount percentages, and expiration dates. Create a table named promo_codes.",
+            answer: `CREATE TABLE promo_codes (
+  code_id INT PRIMARY KEY,
+  code VARCHAR(50),
+  discount_percentage DECIMAL(5,2),
+  expiration_date DATE
+);`
+          },
+          {
+            num: 4,
+            scenario: "A marine research lab needs to store daily ocean readings including temperature, salinity, and GPS coordinates. Create a table named ocean_metrics.",
+            answer: `CREATE TABLE ocean_metrics (
+  metric_id INT PRIMARY KEY,
+  temperature DECIMAL(5,2),
+  salinity DECIMAL(5,2),
+  gps_coordinates VARCHAR(100)
+);`
+          },
+          {
+            num: 5,
+            scenario: "A property management company needs to track lease agreements including lease ID, square footage, monthly rent, and tenant contact information. Create a table named commercial_leases.",
+            answer: `CREATE TABLE commercial_leases (
+  lease_id INT PRIMARY KEY,
+  square_footage DECIMAL(10,2),
+  monthly_rent DECIMAL(10,2),
+  tenant_contact VARCHAR(255)
+);`
+          },
+          {
+            num: 6,
+            scenario: "A cybersecurity team needs a system logs table containing log ID, timestamp, event message, status, country origin, and user ID.",
+            answer: `CREATE TABLE system_logs (
+  log_id INT PRIMARY KEY,
+  timestamp DATETIME,
+  event_message TEXT,
+  status VARCHAR(50),
+  country_origin VARCHAR(100),
+  user_id INT
+);`
+          },
+          {
+            num: 7,
+            scenario: "A university database needs to store employee records including employee ID, performance rating, and years with company.",
+            answer: `CREATE TABLE employees (
+  employee_id INT PRIMARY KEY,
+  performance_rating VARCHAR(50),
+  years_with_company INT
+);`
+          },
+          {
+            num: 8,
+            scenario: "A finance system needs to store account information including account ID, name, email, portfolio value, account type, and creation date.",
+            answer: `CREATE TABLE accounts (
+  account_id INT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100),
+  portfolio_value DECIMAL(15,2),
+  account_type VARCHAR(50),
+  creation_date DATE
+);`
+          },
+          {
+            num: 9,
+            scenario: "A law firm needs a client database storing client ID, name, retainer fee, and registration date.",
+            answer: `CREATE TABLE clients (
+  client_id INT PRIMARY KEY,
+  name VARCHAR(100),
+  retainer_fee DECIMAL(10,2),
+  registration_date DATE
+);`
+          },
+          {
+            num: 10,
+            scenario: "A retail system needs an inventory table with cost, price, available stock, threshold level, and quantity used.",
+            answer: `CREATE TABLE inventory (
+  product_id INT PRIMARY KEY,
+  cost DECIMAL(10,2),
+  price DECIMAL(10,2),
+  available_stock INT,
+  threshold_level INT,
+  quantity_used INT
+);`
+          }
+        ]
+      },
+      {
+        title: "ALTER TABLE (11–20)",
+        instructions: "Write the correct ALTER statement for each scenario.",
+        questions: [
+          {
+            num: 11,
+            scenario: "A store manager decides to rename the column cost to wholesale_price in the inventory table.",
+            answer: "ALTER TABLE inventory RENAME COLUMN cost TO wholesale_price;"
+          },
+          {
+            num: 12,
+            scenario: "A banking system must add a new boolean column is_2fa_enabled to the user_profiles table.",
+            answer: "ALTER TABLE user_profiles ADD COLUMN is_2fa_enabled BOOLEAN DEFAULT FALSE;"
+          },
+          {
+            num: 13,
+            scenario: "A university updates the students table so that phone numbers can now store up to 20 characters for international students.",
+            answer: "ALTER TABLE students MODIFY COLUMN phone_number VARCHAR(20);"
+          },
+          {
+            num: 14,
+            scenario: "A social media platform removes the obsolete facebook_login_id column from the player_accounts table.",
+            answer: "ALTER TABLE player_accounts DROP COLUMN facebook_login_id;"
+          },
+          {
+            num: 15,
+            scenario: "An airline database renames column carrier to aircraft_carrier in the aircraft table.",
+            answer: "ALTER TABLE aircraft RENAME COLUMN carrier TO aircraft_carrier;"
+          },
+          {
+            num: 16,
+            scenario: "An airline maintenance system adds a new column last_rigorous_inspection_date to track aircraft inspections.",
+            answer: "ALTER TABLE aircraft ADD COLUMN last_rigorous_inspection_date DATE;"
+          },
+          {
+            num: 17,
+            scenario: "A subscription service renames column plan to plan_type.",
+            answer: "ALTER TABLE subscriptions RENAME COLUMN plan TO plan_type;"
+          },
+          {
+            num: 18,
+            scenario: "A subscription system adds a new column max_users to the subscriptions table.",
+            answer: "ALTER TABLE subscriptions ADD COLUMN max_users INT DEFAULT 1;"
+          },
+          {
+            num: 19,
+            scenario: "A customer database removes a deprecated facebook_id column.",
+            answer: "ALTER TABLE customers DROP COLUMN facebook_id;"
+          },
+          {
+            num: 20,
+            scenario: "A warehouse system renames column cost to wholesale_price again in another inventory table version.",
+            answer: "ALTER TABLE warehouse_inventory RENAME COLUMN cost TO wholesale_price;"
+          }
+        ]
+      },
+      {
+        title: "INSERT INTO (21–30)",
+        instructions: "Write the INSERT statement for each scenario.",
+        questions: [
+          {
+            num: 21,
+            scenario: "A law firm signs a new corporate client 'Apex Corp' with a retainer fee of 5000 and registration date today. Insert into clients.",
+            answer: "INSERT INTO clients (name, retainer_fee, registration_date) VALUES ('Apex Corp', 5000, CURDATE());"
+          },
+          {
+            num: 22,
+            scenario: "A hotel receptionist checks in a guest into Room 402 with guest ID 1024 and current timestamp.",
+            answer: "INSERT INTO hotel_checkins (guest_id, room_number, checkin_time) VALUES (1024, 402, NOW());"
+          },
+          {
+            num: 23,
+            scenario: "A smart farm IoT sensor records soil moisture of 42% for sensor ID 12 with current time.",
+            answer: "INSERT INTO sensor_readings (sensor_id, soil_moisture, reading_time) VALUES (12, 42.0, NOW());"
+          },
+          {
+            num: 24,
+            scenario: "A gym app logs a workout for member ID 804: 45 minutes, 350 calories burned.",
+            answer: "INSERT INTO workouts (member_id, duration_minutes, calories_burned) VALUES (804, 45, 350);"
+          },
+          {
+            num: 25,
+            scenario: "A music platform adds a new track: 'Midnight Rain' by Luna Eclipse with duration 210 seconds.",
+            answer: "INSERT INTO tracks (title, artist, duration_seconds) VALUES ('Midnight Rain', 'Luna Eclipse', 210);"
+          },
+          {
+            num: 26,
+            scenario: "A drone system logs a flight with flight ID 1 and battery 78.5%.",
+            answer: "INSERT INTO flights (flight_id, battery_percentage) VALUES (1, 78.5);"
+          },
+          {
+            num: 27,
+            scenario: "A retail system adds a promo code 'SAVE20' with 20% discount and expiration date 2026-12-31.",
+            answer: "INSERT INTO promo_codes (code, discount_percentage, expiration_date) VALUES ('SAVE20', 20.0, '2026-12-31');"
+          },
+          {
+            num: 28,
+            scenario: "An ocean sensor records salinity and temperature data with GPS coordinates.",
+            answer: "INSERT INTO ocean_metrics (temperature, salinity, gps_coordinates) VALUES (22.5, 35.2, '40.7128,-74.0060');"
+          },
+          {
+            num: 29,
+            scenario: "A bank inserts a new account for John Doe with portfolio value 1,500,000.",
+            answer: "INSERT INTO accounts (name, portfolio_value) VALUES ('John Doe', 1500000.00);"
+          },
+          {
+            num: 30,
+            scenario: "A company adds a new employee with ID 1042 and performance rating 'Excellent'.",
+            answer: "INSERT INTO employees (employee_id, performance_rating) VALUES (1042, 'Excellent');"
+          }
+        ]
+      },
+      {
+        title: "SELECT (31–40)",
+        instructions: "Write the SELECT query for each scenario.",
+        questions: [
+          {
+            num: 31,
+            scenario: "A wealth manager wants all clients whose portfolio value exceeds 1,000,000.",
+            answer: "SELECT * FROM accounts WHERE portfolio_value > 1000000;"
+          },
+          {
+            num: 32,
+            scenario: "An IT security analyst wants all failed system logs excluding domestic country records.",
+            answer: "SELECT * FROM system_logs WHERE status = 'failed' AND country_origin != 'Domestic';"
+          },
+          {
+            num: 33,
+            scenario: "A corporate recruiter wants employees rated 'Excellent' with more than 3 years in company.",
+            answer: "SELECT * FROM employees WHERE performance_rating = 'Excellent' AND years_with_company > 3;"
+          },
+          {
+            num: 34,
+            scenario: "A marketing team wants only first names and emails from customers for a newsletter.",
+            answer: "SELECT first_name, email FROM customers;"
+          },
+          {
+            num: 35,
+            scenario: "A medical team wants patients over 60 who experienced 'Side Effect A'.",
+            answer: "SELECT * FROM patients WHERE age > 60 AND side_effect = 'Side Effect A';"
+          },
+          {
+            num: 36,
+            scenario: "A quality control team checks all parts from batch 'AB-99' that passed inspection.",
+            answer: "SELECT * FROM parts WHERE batch_id = 'AB-99' AND inspection_status = 'passed';"
+          },
+          {
+            num: 37,
+            scenario: "A marketing team filters promo codes with discount greater than 10%.",
+            answer: "SELECT * FROM promo_codes WHERE discount_percentage > 10;"
+          },
+          {
+            num: 38,
+            scenario: "A marine scientist selects ocean records with high salinity levels.",
+            answer: "SELECT * FROM ocean_metrics WHERE salinity > 35.0;"
+          },
+          {
+            num: 39,
+            scenario: "A warehouse manager finds products where stock is below threshold level.",
+            answer: "SELECT * FROM inventory WHERE available_stock < threshold_level;"
+          },
+          {
+            num: 40,
+            scenario: "A developer retrieves all system logs regardless of condition.",
+            answer: "SELECT * FROM system_logs;"
+          }
+        ]
+      },
+      {
+        title: "UPDATE (41–45)",
+        instructions: "Write the UPDATE statement for each scenario.",
+        questions: [
+          {
+            num: 41,
+            scenario: "A store applies a 15% discount to all electronics products.",
+            answer: "UPDATE inventory SET price = price * 0.85 WHERE category = 'electronics';"
+          },
+          {
+            num: 42,
+            scenario: "An employee named Jane Doe changes her last name to Smith and updates email and department.",
+            answer: "UPDATE employees SET last_name = 'Smith', email = 'jane.smith@company.com', department = 'HR' WHERE first_name = 'Jane' AND last_name = 'Doe';"
+          },
+          {
+            num: 43,
+            scenario: "A courier marks a shipment as Delivered and updates timestamp.",
+            answer: "UPDATE shipments SET delivery_status = 'Delivered', delivery_timestamp = NOW() WHERE shipment_id = 1;"
+          },
+          {
+            num: 44,
+            scenario: "A customer deposits 500 into their bank account.",
+            answer: "UPDATE accounts SET portfolio_value = portfolio_value + 500 WHERE account_id = 1;"
+          },
+          {
+            num: 45,
+            scenario: "A company upgrades client ID 88 to Enterprise plan with 100 max users.",
+            answer: "UPDATE subscriptions SET plan_type = 'Enterprise', max_users = 100 WHERE client_id = 88;"
+          }
+        ]
+      },
+      {
+        title: "DELETE + DROP (46–50)",
+        instructions: "Write the DELETE or DROP statement for each scenario.",
+        questions: [
+          {
+            num: 46,
+            scenario: "A grocery store removes expired milk from inventory.",
+            answer: "DELETE FROM inventory WHERE product_name = 'milk' AND expiration_date < CURDATE();"
+          },
+          {
+            num: 47,
+            scenario: "A customer cancels concert ticket TIX-7721.",
+            answer: "DELETE FROM tickets WHERE ticket_id = 'TIX-7721';"
+          },
+          {
+            num: 48,
+            scenario: "A company removes an old log archive table from the database.",
+            answer: "DROP TABLE log_archive;"
+          },
+          {
+            num: 49,
+            scenario: "A system decommissions a backup inventory table.",
+            answer: "DROP TABLE backup_inventory;"
+          },
+          {
+            num: 50,
+            scenario: "A database administrator removes all test records from the users table.",
+            answer: "DELETE FROM users WHERE user_type = 'test';"
+          }
+        ]
+      }
+    ]
+  }
 ];

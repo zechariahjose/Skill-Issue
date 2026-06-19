@@ -24,14 +24,6 @@
       <div class="logo-tagline">SQL &amp; Databases</div>
     </div>
   </div>
-  <div class="sidebar-streak">
-    <div class="streak-flame">🔥</div>
-    <div class="streak-info">
-      <div class="streak-count" id="streak-count">0</div>
-      <div class="streak-label">day streak</div>
-    </div>
-  </div>
-
   <nav class="sidebar-nav">
     <div class="nav-group-label">Start</div>
     <a class="nav-item active" data-page="home" href="#">
@@ -66,22 +58,13 @@
       <span class="nav-badge new">New</span>
     </a>
 
-    <div class="nav-group-label">You</div>
-    <a class="nav-item" data-page="progress" href="#">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      My Progress
+    <a class="nav-item" data-page="exams" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M8 3a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2H8V3z"/><path d="m9 14 2 2 4-5"/></svg>
+      Exams
+      <span class="nav-badge">3</span>
     </a>
   </nav>
 
-  <div class="sidebar-footer">
-    <div class="sidebar-progress-label">
-      <span>Overall progress</span>
-      <span id="sidebar-progress-text">0 / 12</span>
-    </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="sidebar-progress-bar" style="width:0%"></div>
-    </div>
-  </div>
 </aside>
 
 <!-- MOBILE TOPBAR -->
@@ -365,6 +348,73 @@
         <div class="challenge-placeholder">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           <p>Select a challenge to begin</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== EXAMS =================== -->
+  <section class="page" id="page-exams">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Certification Exams</h1>
+        <p class="page-sub">Complete SQL exams to test your mastery — CREATE, ALTER, INSERT, SELECT, UPDATE, DELETE, DROP</p>
+      </div>
+    </div>
+    <div class="lesson-grid" id="exams-home-grid"></div>
+  </section>
+
+  <!-- =================== EXAM ACTIVE =================== -->
+  <section class="page" id="page-exam-active">
+    <div class="page-header exam-active-header">
+      <button class="btn btn-ghost" id="exam-back-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Exams
+      </button>
+      <div class="exam-progress-wrap">
+        <span class="exam-progress-label" id="exam-progress-label">1 / 50</span>
+        <div class="progress-track" style="width:200px">
+          <div class="progress-fill" id="exam-progress-fill" style="width:2%"></div>
+        </div>
+      </div>
+    </div>
+    <div id="exam-content-area">
+      <div class="exam-question-card exam-layout-grid">
+        <div class="exam-left">
+          <div class="exam-question-section" id="exam-section-title"></div>
+          <div class="exam-question-number" id="exam-question-number"></div>
+          <div class="exam-scenario" id="exam-scenario"></div>
+          <div class="exam-answer-area">
+            <textarea class="exam-answer-input" id="exam-answer-input" placeholder="Write your SQL statement here..."></textarea>
+            <div class="exam-answer-hint" id="exam-answer-hint"></div>
+          </div>
+          <div class="exam-buttons">
+            <button class="btn btn-primary" id="exam-check-btn">Check Answer</button>
+            <button class="btn btn-ghost" id="exam-next-btn">Next Question</button>
+          </div>
+          <div class="exam-feedback" id="exam-feedback" style="display:none"></div>
+        </div>
+        <div class="exam-right" id="exam-right-panel">
+          <div class="exam-testcases-header">
+            <div class="page-title">Test cases</div>
+            <div class="page-sub">Review expected vs actual output for this question.</div>
+          </div>
+          <div id="exam-testcases-list" class="exam-testcases-list">
+            <div class="exam-testcase-card placeholder-card">
+              <div class="testcase-title">Test case #1</div>
+              <div class="testcase-status">Run your query to display results here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="exam-result-area" style="display:none">
+      <div class="exam-result-card">
+        <div class="result-title">Exam Complete!</div>
+        <div class="result-message" id="exam-result-message">You have completed all 50 questions.</div>
+        <div class="result-btns">
+          <button class="btn btn-ghost" id="exam-result-back-btn">Back to exams</button>
+          <button class="btn btn-primary" id="exam-result-retry-btn">Retake exam</button>
         </div>
       </div>
     </div>

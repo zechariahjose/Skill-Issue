@@ -61,9 +61,14 @@ function updateProgress() {
   const total = LESSONS.length;
   const done = state.completedLessons.length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  document.getElementById('sidebar-progress-bar').style.width = pct + '%';
-  document.getElementById('sidebar-progress-text').textContent = `${done} / ${total}`;
-  document.getElementById('streak-count').textContent = state.streak;
+  
+  const progressBar = document.getElementById('sidebar-progress-bar');
+  const progressText = document.getElementById('sidebar-progress-text');
+  const streakCount = document.getElementById('streak-count');
+  
+  if (progressBar) progressBar.style.width = pct + '%';
+  if (progressText) progressText.textContent = `${done} / ${total}`;
+  if (streakCount) streakCount.textContent = state.streak;
 
   // Update motivational banner
   const msg = done === 0
@@ -714,6 +719,209 @@ function openChallenge(id) {
 }
 
 // ============================================================
+//  EXAMS
+// ============================================================
+function renderExamHome() {
+  const grid = document.getElementById('exams-home-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  EXAMS.forEach(exam => {
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+    card.innerHTML = `
+      <div class="lesson-card-icon">${exam.icon}</div>
+      <div class="lesson-card-title">${exam.title}</div>
+      <div class="lesson-card-desc">${exam.desc}</div>
+      <div class="lesson-card-footer">
+        <span class="badge badge-${exam.difficulty}">${exam.difficulty}</span>
+        <span class="lesson-card-time">50 questions</span>
+      </div>`;
+    card.addEventListener('click', () => startExam(exam.id));
+    grid.appendChild(card);
+  });
+}
+
+let activeExam = null, examQ = 0, examAnswers = {};
+
+function startExam(id) {
+  activeExam = EXAMS.find(e => e.id === id);
+  if (!activeExam) return;
+  examQ = 0;
+  examAnswers = {};
+  document.getElementById('exam-result-area').style.display = 'none';
+  document.getElementById('exam-content-area').style.display = 'block';
+  showPage('exam-active');
+  renderExamQuestion();
+}
+
+function getExamQuestionCount() {
+  return activeExam.sections.reduce((sum, s) => sum + s.questions.length, 0);
+}
+
+function getExamQuestionByIndex(idx) {
+  let count = 0;
+  for (let s of activeExam.sections) {
+    if (idx < count + s.questions.length) {
+      return { section: s, question: s.questions[idx - count], sectionIndex: activeExam.sections.indexOf(s) };
+    }
+    count += s.questions.length;
+  }
+  return null;
+}
+
+function renderExamQuestion() {
+  const qData = getExamQuestionByIndex(examQ);
+  if (!qData) {
+    finishExam();
+    return;
+  }
+  
+  const total = getExamQuestionCount();
+  const pct = ((examQ + 1) / total) * 100;
+  document.getElementById('exam-progress-label').textContent = `${examQ + 1} / ${total}`;
+  document.getElementById('exam-progress-fill').style.width = pct + '%';
+  
+  document.getElementById('exam-section-title').textContent = qData.section.title;
+  document.getElementById('exam-question-number').textContent = `Question ${qData.question.num}`;
+  document.getElementById('exam-scenario').textContent = qData.question.scenario;
+  document.getElementById('exam-answer-input').value = examAnswers[examQ] || '';
+  const fb = document.getElementById('exam-feedback'); if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
+  const testList = document.getElementById('exam-testcases-list'); if (testList) testList.innerHTML = `<div class="exam-testcase-card placeholder-card"><div class="testcase-title">Test case #1</div><div class="testcase-status">Run your query to display results here.</div></div>`;
+  document.getElementById('exam-answer-hint').textContent = qData.section.instructions;
+  
+  const inputArea = document.getElementById('exam-answer-input');
+  inputArea.focus();
+}
+
+function nextExamQuestion() {
+  const input = document.getElementById('exam-answer-input').value;
+  examAnswers[examQ] = input;
+  examQ++;
+  renderExamQuestion();
+}
+
+function renderRowsHtml(rows) {
+  if (!rows || !rows.length) return '<div class="placeholder">0 rows returned</div>';
+  const cols = Object.keys(rows[0]);
+  let html = `<table class="result-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  html += rows.map(r => `<tr>${cols.map(c => `<td>${r[c] == null ? '<span class="null-val">NULL</span>' : r[c]}</td>`).join('')}</tr>`).join('');
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderRowsInto(el, rows) {
+  if (!el) return;
+  el.innerHTML = renderRowsHtml(rows);
+}
+
+function renderTextHtml(header, text) {
+  return `
+    <table class="result-table">
+      <thead><tr><th>${header}</th></tr></thead>
+      <tbody><tr><td>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td></tr></tbody>
+    </table>`;
+}
+
+function buildTestcaseCard(status, title, expectedHtml, actualHtml, showWrongButton = false) {
+  return `
+    <div class="exam-testcase-card ${status}">
+      <div class="testcase-title">${title}</div>
+      <div class="testcase-status">${status === 'pass' ? 'Passed' : 'Failed'}</div>
+      <div class="exam-testcase-block">
+        <div class="testcase-block-item">
+          <div class="testcase-label">Expected output</div>
+          ${expectedHtml}
+        </div>
+        <div class="testcase-block-item">
+          <div class="testcase-label">Actual output</div>
+          ${actualHtml}
+        </div>
+      </div>
+      ${showWrongButton ? `<button class="btn btn-danger testcase-action-btn" onclick="this.closest('.exam-testcase-card').classList.toggle('show-diff')">See what's wrong</button>` : ''}
+      ${showWrongButton ? '<div class="testcase-note diff-info">Compare values column-by-column and adjust your query.</div>' : ''}
+    </div>`;
+}
+
+function checkExamAnswer() {
+  const qData = getExamQuestionByIndex(examQ);
+  if (!qData) return;
+  const userSql = (document.getElementById('exam-answer-input').value || '').trim();
+  examAnswers[examQ] = userSql;
+  const fb = document.getElementById('exam-feedback');
+  if (fb) { fb.style.display='none'; fb.textContent=''; }
+
+  if (!userSql) {
+    if (fb) { fb.style.display='block'; fb.textContent = 'Write an answer before checking.'; }
+    return;
+  }
+
+  const expectedSql = (qData.question.answer || '').trim();
+  const testList = document.getElementById('exam-testcases-list');
+  try {
+    if (/^SELECT\b/i.test(expectedSql)) {
+      const userRes = executeSQLQuery(userSql, DB);
+      const expRes = executeSQLQuery(expectedSql, DB);
+      const userRows = userRes.rows;
+      const expRows = expRes.rows;
+      const ok = JSON.stringify(userRows) === JSON.stringify(expRows);
+      const cardHtml = buildTestcaseCard(
+        ok ? 'pass' : 'fail',
+        'Test case #1',
+        renderRowsHtml(expRows),
+        renderRowsHtml(userRows),
+        !ok
+      );
+      if (testList) testList.innerHTML = cardHtml;
+      if (fb) { fb.style.display='block'; fb.textContent = ok ? '✓ Correct — output matches expected.' : '✗ Output does not match expected.'; }
+      if (ok) confettiPop();
+    } else {
+      const norm = s => s.replace(/;$/, '').replace(/\s+/g, ' ').trim().toUpperCase();
+      const ok = norm(userSql) === norm(expectedSql);
+      const cardHtml = buildTestcaseCard(
+        ok ? 'pass' : 'fail',
+        'Test case #1',
+        renderTextHtml('Expected SQL', expectedSql),
+        renderTextHtml('Your SQL', userSql),
+        !ok
+      );
+      if (testList) testList.innerHTML = cardHtml;
+      if (fb) { fb.style.display='block'; fb.textContent = ok ? '✓ Correct — statement matches expected.' : '✗ Statement differs from expected.'; }
+      if (ok) confettiPop();
+    }
+  } catch(e) {
+    if (fb) { fb.style.display='block'; fb.textContent = '⚠ ' + e.message; }
+    const cardHtml = buildTestcaseCard(
+      'fail',
+      'Test case #1',
+      renderTextHtml('Expected SQL', expectedSql),
+      renderTextHtml('Actual error', e.message),
+      true
+    );
+    if (testList) testList.innerHTML = cardHtml;
+  }
+}
+
+function finishExam() {
+  document.getElementById('exam-content-area').style.display = 'none';
+  const resultArea = document.getElementById('exam-result-area');
+  resultArea.style.display = 'flex';
+  resultArea.style.justifyContent = 'center';
+  const total = getExamQuestionCount();
+  document.getElementById('exam-result-message').innerHTML = `
+    <div style="text-align:center">
+      <div style="font-size:18px; margin-bottom:10px">You completed all ${total} exam questions!</div>
+      <div style="color:var(--text-faint); font-size:14px">Review your answers and compare with the solutions provided.</div>
+    </div>`;
+  confettiPop();
+}
+
+document.getElementById('exam-back-btn')?.addEventListener('click', () => showPage('exams'));
+document.getElementById('exam-result-back-btn')?.addEventListener('click', () => showPage('exams'));
+document.getElementById('exam-result-retry-btn')?.addEventListener('click', () => startExam(activeExam.id));
+document.getElementById('exam-check-btn')?.addEventListener('click', checkExamAnswer);
+document.getElementById('exam-next-btn')?.addEventListener('click', nextExamQuestion);
+
+// ============================================================
 //  PROGRESS PAGE
 // ============================================================
 function renderProgressPage() {
@@ -763,7 +971,10 @@ function renderProgressPage() {
 }
 
 // Update progress page when navigating to it
-document.querySelector('.nav-item[data-page="progress"]').addEventListener('click', renderProgressPage);
+const progressNavItem = document.querySelector('.nav-item[data-page="progress"]');
+if (progressNavItem) {
+  progressNavItem.addEventListener('click', renderProgressPage);
+}
 
 // ============================================================
 //  INIT
@@ -771,6 +982,7 @@ document.querySelector('.nav-item[data-page="progress"]').addEventListener('clic
 renderLessons();
 renderCheatsheet();
 renderQuizHome();
+renderExamHome();
 renderQuickQueries();
 renderChallenges();
 updateProgress();
