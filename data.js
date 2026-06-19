@@ -356,6 +356,191 @@ Math     |            2</pre>
 <span class="kw">LIMIT</span>    ...   <span class="cmt">-- cap rows</span></pre>
 `,
     practice: { q: "When should you use HAVING instead of WHERE?", options: ["When filtering text values", "When filtering individual rows before grouping", "When filtering groups after GROUP BY", "When joining more than two tables"], answer: 2, explain: "HAVING filters aggregated groups. WHERE filters individual rows before GROUP BY runs. You can't use aggregate functions like COUNT() in a WHERE clause." }
+  },
+
+  // ---- ADVANCED ----
+  {
+    id: 12, tab: "advanced",
+    title: "Subqueries",
+    difficulty: "hard",
+    desc: "Use one query inside another query",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9h8M8 13h4"/><path d="M15 13l3 3-3 3"/></svg>`,
+    content: `
+<h2>Subqueries</h2>
+<p>A <strong>subquery</strong> is a query nested inside another query. It lets one query use the result of another query.</p>
+<h3>Subquery in WHERE</h3>
+<pre><span class="kw">SELECT</span> name, age
+<span class="kw">FROM</span> students
+<span class="kw">WHERE</span> age > (
+  <span class="kw">SELECT AVG</span>(age)
+  <span class="kw">FROM</span> students
+);</pre>
+<p>The inner query finds the average age. The outer query returns students older than that average.</p>
+<h3>Subquery with IN</h3>
+<pre><span class="kw">SELECT</span> name
+<span class="kw">FROM</span> students
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> student_id
+  <span class="kw">FROM</span> grades
+  <span class="kw">WHERE</span> grade >= <span class="val">90</span>
+);</pre>
+<p>This finds students who have at least one grade of 90 or higher.</p>
+<div class="note">Use a subquery when the filter depends on another result, such as an average, maximum, or list of related IDs.</div>
+`,
+    practice: { q: "What is a subquery?", options: ["A query inside another query", "A renamed table", "A type of JOIN", "A database backup"], answer: 0, explain: "A subquery is nested inside another SQL statement and supplies a value, row set, or filter list for the outer query." }
+  },
+  {
+    id: 13, tab: "advanced",
+    title: "EXISTS",
+    difficulty: "hard",
+    desc: "Test whether a related row exists",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>`,
+    content: `
+<h2>EXISTS</h2>
+<p><code>EXISTS</code> checks whether a subquery returns at least one row. It answers a yes/no question for each row in the outer query.</p>
+<pre><span class="kw">SELECT</span> s.name
+<span class="kw">FROM</span> students <span class="kw">AS</span> s
+<span class="kw">WHERE EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="val">1</span>
+  <span class="kw">FROM</span> grades <span class="kw">AS</span> g
+  <span class="kw">WHERE</span> g.student_id = s.id
+);</pre>
+<p>This returns students who have at least one grade row.</p>
+<h3>NOT EXISTS</h3>
+<pre><span class="kw">SELECT</span> s.name
+<span class="kw">FROM</span> students <span class="kw">AS</span> s
+<span class="kw">WHERE NOT EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="val">1</span>
+  <span class="kw">FROM</span> grades <span class="kw">AS</span> g
+  <span class="kw">WHERE</span> g.student_id = s.id
+);</pre>
+<p>This returns students with no grade rows.</p>
+<div class="note"><code>EXISTS</code> is often clearer than <code>IN</code> when you are checking related rows across tables.</div>
+`,
+    practice: { q: "What does EXISTS test?", options: ["Whether a table has an index", "Whether a subquery returns at least one row", "Whether a column is unique", "Whether a query is sorted"], answer: 1, explain: "EXISTS returns true when the subquery finds at least one matching row. NOT EXISTS reverses that check." }
+  },
+  {
+    id: 14, tab: "advanced",
+    title: "CASE Expressions",
+    difficulty: "hard",
+    desc: "Create conditional labels in query results",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h10M4 17h16"/><path d="M17 10l3 2-3 2"/></svg>`,
+    content: `
+<h2>CASE Expressions</h2>
+<p><code>CASE</code> lets you add conditional logic to a query result. It works like an if/else chain.</p>
+<pre><span class="kw">SELECT</span>
+  name,
+  grade,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> grade >= <span class="val">90</span> <span class="kw">THEN</span> <span class="str">'Excellent'</span>
+    <span class="kw">WHEN</span> grade >= <span class="val">80</span> <span class="kw">THEN</span> <span class="str">'Good'</span>
+    <span class="kw">WHEN</span> grade >= <span class="val">70</span> <span class="kw">THEN</span> <span class="str">'Passing'</span>
+    <span class="kw">ELSE</span> <span class="str">'Needs work'</span>
+  <span class="kw">END AS</span> grade_label
+<span class="kw">FROM</span> grades;</pre>
+<h3>Why CASE is useful</h3>
+<p>Use <code>CASE</code> to turn raw values into readable labels, bucket values into ranges, or calculate conditional summaries.</p>
+<pre><span class="kw">SELECT</span>
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> credits >= <span class="val">4</span> <span class="kw">THEN</span> <span class="str">'Heavy'</span>
+    <span class="kw">ELSE</span> <span class="str">'Standard'</span>
+  <span class="kw">END AS</span> course_load,
+  <span class="kw">COUNT</span>(*) <span class="kw">AS</span> count
+<span class="kw">FROM</span> courses
+<span class="kw">GROUP BY</span> course_load;</pre>
+<div class="note">Always end a CASE expression with <code>END</code>. Add <code>AS alias</code> so the output column has a useful name.</div>
+`,
+    practice: { q: "What is the purpose of CASE in SQL?", options: ["Create conditional output values", "Create a database table", "Force a JOIN to match", "Delete duplicate rows"], answer: 0, explain: "CASE evaluates conditions in order and returns a value for the first matching condition, with ELSE as the fallback." }
+  },
+  {
+    id: 15, tab: "advanced",
+    title: "Keys & Constraints",
+    difficulty: "hard",
+    desc: "Protect data integrity with database rules",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M15 4l2 2M13 8l2 2"/></svg>`,
+    content: `
+<h2>Keys & Constraints</h2>
+<p>Constraints are rules the database enforces so your data stays valid.</p>
+<h3>Primary Key</h3>
+<pre><span class="kw">CREATE TABLE</span> students (
+  id <span class="kw">INT PRIMARY KEY</span>,
+  name <span class="kw">VARCHAR</span>(<span class="val">100</span>) <span class="kw">NOT NULL</span>
+);</pre>
+<p>A primary key uniquely identifies each row. It cannot be duplicated or NULL.</p>
+<h3>Foreign Key</h3>
+<pre><span class="kw">CREATE TABLE</span> grades (
+  student_id <span class="kw">INT</span>,
+  course_id <span class="kw">INT</span>,
+  grade <span class="kw">INT</span>,
+  <span class="kw">FOREIGN KEY</span> (student_id) <span class="kw">REFERENCES</span> students(id)
+);</pre>
+<p>A foreign key connects one table to another table's primary key.</p>
+<h3>Common constraints</h3>
+<ul>
+  <li><code>NOT NULL</code> - value is required</li>
+  <li><code>UNIQUE</code> - no duplicate values</li>
+  <li><code>CHECK</code> - value must pass a rule</li>
+  <li><code>DEFAULT</code> - use a fallback value if none is provided</li>
+</ul>
+<div class="note">Constraints belong to database design. They prevent bad data from entering your tables in the first place.</div>
+`,
+    practice: { q: "What does a foreign key do?", options: ["Sorts a table automatically", "Links a column to a key in another table", "Encrypts a column", "Counts rows in a table"], answer: 1, explain: "A foreign key stores values that reference another table's primary key, creating a relationship between tables." }
+  },
+  {
+    id: 16, tab: "advanced",
+    title: "Indexes & Views",
+    difficulty: "hard",
+    desc: "Speed up searches and save reusable query shapes",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v14"/></svg>`,
+    content: `
+<h2>Indexes & Views</h2>
+<p>Indexes and views are database tools that help with performance and organization.</p>
+<h3>Indexes</h3>
+<p>An index helps the database find rows faster, especially when filtering or joining by a column.</p>
+<pre><span class="kw">CREATE INDEX</span> idx_students_major
+<span class="kw">ON</span> students (major);</pre>
+<p>Indexes make reads faster, but they can make inserts and updates slower because the index must also be maintained.</p>
+<h3>Views</h3>
+<p>A view is a saved query that acts like a virtual table.</p>
+<pre><span class="kw">CREATE VIEW</span> student_grades <span class="kw">AS</span>
+<span class="kw">SELECT</span> s.name, c.name <span class="kw">AS</span> course, g.grade
+<span class="kw">FROM</span> students s
+<span class="kw">JOIN</span> grades g <span class="kw">ON</span> s.id = g.student_id
+<span class="kw">JOIN</span> courses c <span class="kw">ON</span> c.id = g.course_id;</pre>
+<p>After that, you can query the view:</p>
+<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> student_grades;</pre>
+<div class="note">Use indexes for frequently searched columns. Use views to reuse complex SELECT queries and simplify reporting.</div>
+`,
+    practice: { q: "What is a SQL view?", options: ["A saved SELECT query used like a virtual table", "A physical backup of a database", "An index on every table", "A command that deletes rows"], answer: 0, explain: "A view stores a query definition. It does not usually store its own data; it presents data from underlying tables." }
+  },
+  {
+    id: 17, tab: "advanced",
+    title: "SQL Injection & Parameters",
+    difficulty: "hard",
+    desc: "Understand unsafe input and safer prepared queries",
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-5"/></svg>`,
+    content: `
+<h2>SQL Injection & Parameters</h2>
+<p>SQL injection happens when user input is pasted directly into a SQL string and changes the meaning of the query.</p>
+<h3>Unsafe string building</h3>
+<pre><span class="cmt">-- Dangerous idea</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> users
+<span class="kw">WHERE</span> username = <span class="str">'</span> + userInput + <span class="str">'</span>;</pre>
+<p>If <code>userInput</code> contains SQL code, the database may run something you did not intend.</p>
+<h3>Prepared statements</h3>
+<p>Prepared statements separate SQL structure from values. The database treats user input as data, not executable SQL.</p>
+<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> users
+<span class="kw">WHERE</span> username = ?;</pre>
+<p>The <code>?</code> is a parameter placeholder. Your database library safely binds the user's value to it.</p>
+<h3>Practical rule</h3>
+<ul>
+  <li>Never build SQL by concatenating raw user input.</li>
+  <li>Use parameters or prepared statements.</li>
+  <li>Validate input for type and length before saving it.</li>
+</ul>
+<div class="note">Security is part of database skill. Good SQL is not only correct; it is safe to run with real user input.</div>
+`,
+    practice: { q: "What is the safer way to include user input in SQL?", options: ["String concatenation", "Prepared statements with parameters", "Putting input in comments", "Using SELECT *"], answer: 1, explain: "Prepared statements keep the SQL structure separate from user-supplied values, preventing input from becoming executable SQL." }
   }
 ];
 
@@ -409,6 +594,42 @@ const QUIZZES = [
       { q: "What does GROUP BY do?", opts: ["Sorts rows in a table","Joins tables together","Groups rows sharing the same value for aggregation","Filters rows before they are counted"], a: 2, exp: "GROUP BY clusters rows that share the same value into a group, so aggregate functions can be applied to each group separately." },
       { q: "Where does HAVING fit in a query?", opts: ["Before FROM","Before WHERE","After GROUP BY","Before SELECT"], a: 2, exp: "The correct order is: SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT." },
       { q: "AVG(grade) returns...", opts: ["The highest grade","The sum of all grades","Total count of grade rows","The mean average of all grades"], a: 3, exp: "AVG() computes the arithmetic mean: it sums all non-NULL values and divides by the count of non-NULL values." }
+    ]
+  },
+  {
+    id: 4, title: "Subqueries & EXISTS", difficulty: "hard",
+    desc: "Nested SELECT statements, IN, EXISTS, and NOT EXISTS",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9h8M8 13h4"/><path d="M15 13l3 3-3 3"/></svg>`,
+    questions: [
+      { q: "What does a subquery do?", opts: ["Runs outside SQL","Nests one query inside another query","Creates a new database engine","Sorts rows permanently"], a: 1, exp: "A subquery is a SELECT statement inside another SQL statement. The outer query can use its result." },
+      { q: "Which query pattern finds values from a list returned by another query?", opts: ["WHERE col IN (SELECT ...)","WHERE col JOIN (SELECT ...)","ORDER BY (SELECT ...)","GROUP BY IN"], a: 0, exp: "IN can compare a column to a set of values returned by a subquery." },
+      { q: "EXISTS returns true when...", opts: ["The database exists","The subquery returns at least one row","A column is indexed","A table has a primary key"], a: 1, exp: "EXISTS checks row existence. It is true if the subquery finds at least one matching row." },
+      { q: "What does NOT EXISTS commonly find?", opts: ["Rows with no related match","Rows with duplicate values","Rows sorted descending","Rows with every column selected"], a: 0, exp: "NOT EXISTS is useful for anti-joins, such as finding students without any grades." },
+      { q: "Which is usually clearer for checking related rows?", opts: ["EXISTS with a correlated subquery","ORDER BY with LIMIT","COUNT(*) in SELECT only","SELECT DISTINCT *"], a: 0, exp: "EXISTS directly expresses that you only care whether a related row is present, not how many values are returned." }
+    ]
+  },
+  {
+    id: 5, title: "CASE & Constraints", difficulty: "hard",
+    desc: "Conditional output, primary keys, foreign keys, and rules",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h10M4 17h16"/><path d="M17 10l3 2-3 2"/></svg>`,
+    questions: [
+      { q: "What does CASE do in SELECT?", opts: ["Adds conditional output values","Creates an index","Deletes unmatched rows","Forces all rows to be unique"], a: 0, exp: "CASE evaluates conditions and returns different values depending on which condition matches first." },
+      { q: "Which keyword closes a CASE expression?", opts: ["STOP","DONE","END","CLOSE"], a: 2, exp: "CASE expressions are closed with END, often followed by AS alias for the output column name." },
+      { q: "What is a primary key?", opts: ["A value that may be duplicated","A column or set of columns that uniquely identifies a row","A query shortcut","A filter condition"], a: 1, exp: "A primary key uniquely identifies each row and cannot be NULL." },
+      { q: "What does a foreign key enforce?", opts: ["A relationship to a referenced table","Alphabetical sorting","Automatic backups","Faster SELECT * queries"], a: 0, exp: "A foreign key ensures values in one table correspond to valid key values in another table." },
+      { q: "Which constraint requires a value to be present?", opts: ["UNIQUE","DEFAULT","NOT NULL","CHECK"], a: 2, exp: "NOT NULL prevents a column from storing missing values." }
+    ]
+  },
+  {
+    id: 6, title: "Indexes, Views & Security", difficulty: "hard",
+    desc: "Performance, reusable queries, and safe parameters",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-5"/></svg>`,
+    questions: [
+      { q: "What is the main purpose of an index?", opts: ["Make searched rows faster to find","Delete duplicate data","Encrypt all tables","Store comments"], a: 0, exp: "Indexes help the database locate matching rows more efficiently, especially for WHERE and JOIN columns." },
+      { q: "What is a tradeoff of indexes?", opts: ["They make reads impossible","They can slow inserts and updates","They remove primary keys","They only work with text"], a: 1, exp: "Indexes must be maintained when data changes, so writes can become slower." },
+      { q: "What is a view?", opts: ["A saved SELECT query used like a virtual table","A required database password","A physical copy of every row","A temporary WHERE clause"], a: 0, exp: "A view stores a query definition and presents its result shape as something you can query." },
+      { q: "What causes SQL injection risk?", opts: ["Using uppercase keywords","Concatenating raw user input into SQL strings","Using SELECT with FROM","Adding aliases"], a: 1, exp: "Raw string concatenation can let user input change the SQL command itself." },
+      { q: "What is the safer replacement for concatenating user input?", opts: ["Prepared statements and parameters","ORDER BY user input directly","SELECT * always","DROP unused tables"], a: 0, exp: "Prepared statements separate SQL code from user values, preventing input from being executed as SQL." }
     ]
   }
 ];

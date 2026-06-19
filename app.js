@@ -147,7 +147,7 @@ document.getElementById('home-progress-btn')?.addEventListener('click', () => {
 //  LESSONS PAGE
 // ============================================================
 function renderLessons() {
-  const tabs = ['basics', 'filtering', 'joins', 'aggregates'];
+  const tabs = ['basics', 'filtering', 'joins', 'aggregates', 'advanced'];
   tabs.forEach(tab => {
     const grid = document.getElementById('grid-' + tab);
     if (!grid) return;

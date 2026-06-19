@@ -7,9 +7,10 @@ The site is centered on learning how databases work: tables, rows, columns, filt
 ## Features
 
 - SQL and relational database lessons
+- Advanced lessons for subqueries, EXISTS, CASE, constraints, indexes, views, and safe parameters
 - Beginner-friendly explanations
 - Interactive SQL sandbox with sample tables
-- Quizzes with instant feedback
+- Seven quizzes with instant feedback, including harder SQL/database topics
 - Query challenges with automatic checking
 - Progress tracking and study streaks
 
