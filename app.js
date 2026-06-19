@@ -1,5 +1,5 @@
 // ============================================================
-//  SQL.learn — app.js
+//  Skill Issue — SQL & database practice
 // ============================================================
 
 // ---- STATE ----
@@ -17,15 +17,17 @@ function saveState() {
 
 // ---- MOTIVATIONAL MESSAGES ----
 const MOTIVATIONAL = [
-  { emoji: '⚡', title: 'Ready to level up your SQL?', sub: 'Each lesson takes under 5 minutes. You got this.' },
-  { emoji: '🚀', title: "Let's keep the momentum going!", sub: 'One lesson at a time builds real expertise.' },
-  { emoji: '🎯', title: 'Focus in. Progress awaits.', sub: 'SQL is a superpower — you\'re building it right now.' },
-  { emoji: '💡', title: 'Curiosity → Skill → Confidence', sub: 'Every query you write makes the next one easier.' },
-  { emoji: '🔥', title: 'Your streak is alive. Keep it burning.', sub: 'Consistency beats intensity. Show up today.' },
+  { emoji: '⚡', title: 'Ready to level up your SQL?', sub: 'Each database lesson takes under 5 minutes. You got this.' },
+  { emoji: '🚀', title: "Let's keep the momentum going!", sub: 'One query at a time builds real database fluency.' },
+  { emoji: '🎯', title: 'Focus in. Progress awaits.', sub: 'SQL gets clearer when you practice against real tables.' },
+  { emoji: '💡', title: 'Curiosity → Query → Confidence', sub: 'Every result set you inspect makes the next query easier.' },
+  { emoji: '🔥', title: 'Your SQL streak is alive. Keep it burning.', sub: 'Consistency beats intensity. Show up for one database task today.' },
 ];
 
 // ---- ROUTING ----
 function showPage(id) {
+  if (id === 'progress') renderProgressPage();
+  if (id === 'home') renderHome();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + id)?.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => {
@@ -67,7 +69,7 @@ function updateProgress() {
   const msg = done === 0
     ? MOTIVATIONAL[0]
     : done >= total
-    ? { emoji: '🏆', title: 'All lessons complete! You\'re a SQL pro.', sub: 'Try the Challenges to push your skills further.' }
+    ? { emoji: '🏆', title: 'All lessons complete! Your SQL foundation is strong.', sub: 'Try the database challenges to push your skills further.' }
     : MOTIVATIONAL[Math.min(Math.floor((done / total) * 4) + 1, MOTIVATIONAL.length - 1)];
   
   const banner = document.getElementById('motivational-banner');
@@ -76,7 +78,70 @@ function updateProgress() {
     document.getElementById('banner-sub').textContent = msg.sub;
     banner.querySelector('.banner-emoji').textContent = msg.emoji;
   }
+
+  renderHome();
 }
+
+// ============================================================
+//  HOME PAGE
+// ============================================================
+function getNextLesson() {
+  return LESSONS.find(lesson => !state.completedLessons.includes(lesson.id)) || LESSONS[0];
+}
+
+function renderHome() {
+  const metrics = document.getElementById('home-metrics');
+  if (!metrics) return;
+
+  const total = LESSONS.length;
+  const done = state.completedLessons.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const quizCount = Object.keys(state.quizScores).length;
+  const nextLesson = getNextLesson();
+
+  metrics.innerHTML = `
+    <div class="home-metric">
+      <div class="home-metric-value">${pct}%</div>
+      <div class="home-metric-label">SQL database path</div>
+    </div>
+    <div class="home-metric">
+      <div class="home-metric-value">${done}/${total}</div>
+      <div class="home-metric-label">Lessons completed</div>
+    </div>
+    <div class="home-metric">
+      <div class="home-metric-value">${quizCount}</div>
+      <div class="home-metric-label">Quizzes taken</div>
+    </div>`;
+
+  const nextTitle = document.getElementById('next-step-title');
+  const nextCopy = document.getElementById('next-step-copy');
+  if (!nextTitle || !nextCopy) return;
+
+  if (done >= total) {
+    nextTitle.textContent = 'You finished the SQL database lessons';
+    nextCopy.textContent = 'Keep the skill warm with quizzes, challenges, and sandbox database practice.';
+  } else {
+    nextTitle.textContent = `Next lesson: ${nextLesson.title}`;
+    nextCopy.textContent = nextLesson.desc;
+  }
+}
+
+function continueSqlCourse() {
+  showPage('lessons');
+}
+
+function studyNextLesson() {
+  const nextLesson = getNextLesson();
+  if (nextLesson) openLesson(nextLesson.id);
+}
+
+document.getElementById('home-start-btn')?.addEventListener('click', continueSqlCourse);
+document.getElementById('course-sql-btn')?.addEventListener('click', continueSqlCourse);
+document.getElementById('next-step-btn')?.addEventListener('click', studyNextLesson);
+document.getElementById('home-progress-btn')?.addEventListener('click', () => {
+  renderProgressPage();
+  showPage('progress');
+});
 
 // ============================================================
 //  LESSONS PAGE
@@ -709,4 +774,4 @@ renderQuizHome();
 renderQuickQueries();
 renderChallenges();
 updateProgress();
-showPage('lessons');
+showPage('home');
