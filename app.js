@@ -749,7 +749,7 @@ function startExam(id) {
   examQ = 0;
   examAnswers = {};
   document.getElementById('exam-result-area').style.display = 'none';
-  document.getElementById('exam-content-area').style.display = 'block';
+  document.getElementById('exam-content-area').style.display = 'flex';
   showPage('exam-active');
   renderExamQuestion();
 }
@@ -775,70 +775,336 @@ function renderExamQuestion() {
     finishExam();
     return;
   }
-  
+
   const total = getExamQuestionCount();
   const pct = ((examQ + 1) / total) * 100;
-  document.getElementById('exam-progress-label').textContent = `${examQ + 1} / ${total}`;
+  document.getElementById('exam-progress-label').textContent = `Question ${examQ + 1} / ${total}`;
   document.getElementById('exam-progress-fill').style.width = pct + '%';
-  
+
+  document.getElementById('exam-problem-title').textContent = activeExam.title;
+  document.getElementById('exam-section-badge').textContent = activeExam.difficulty;
+  document.getElementById('exam-section-badge').className = 'badge-chip badge-' + activeExam.difficulty;
   document.getElementById('exam-section-title').textContent = qData.section.title;
   document.getElementById('exam-question-number').textContent = `Question ${qData.question.num}`;
   document.getElementById('exam-scenario').textContent = qData.question.scenario;
-  document.getElementById('exam-answer-input').value = examAnswers[examQ] || '';
-  const fb = document.getElementById('exam-feedback'); if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
-  const testList = document.getElementById('exam-testcases-list'); if (testList) testList.innerHTML = `<div class="exam-testcase-card placeholder-card"><div class="testcase-title">Test case #1</div><div class="testcase-status">Run your query to display results here.</div></div>`;
   document.getElementById('exam-answer-hint').textContent = qData.section.instructions;
-  
+
   const inputArea = document.getElementById('exam-answer-input');
+  inputArea.value = examAnswers[examQ] || '';
+
+  const fb = document.getElementById('exam-feedback');
+  if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
+
+  const prevBtn = document.getElementById('exam-prev-btn');
+  if (prevBtn) prevBtn.disabled = examQ === 0;
+
+  const nextBtn = document.getElementById('exam-next-btn');
+  if (nextBtn) nextBtn.textContent = (examQ === total - 1) ? 'Finish Exam' : 'Next Question';
+
+  renderExamRightPanel(qData, null, null, false);
+
   inputArea.focus();
 }
 
 function nextExamQuestion() {
-  const input = document.getElementById('exam-answer-input').value;
-  examAnswers[examQ] = input;
+  examAnswers[examQ] = document.getElementById('exam-answer-input').value;
   examQ++;
   renderExamQuestion();
 }
 
-function renderRowsHtml(rows) {
-  if (!rows || !rows.length) return '<div class="placeholder">0 rows returned</div>';
-  const cols = Object.keys(rows[0]);
-  let html = `<table class="result-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
-  html += rows.map(r => `<tr>${cols.map(c => `<td>${r[c] == null ? '<span class="null-val">NULL</span>' : r[c]}</td>`).join('')}</tr>`).join('');
+function prevExamQuestion() {
+  examAnswers[examQ] = document.getElementById('exam-answer-input').value;
+  if (examQ > 0) {
+    examQ--;
+    renderExamQuestion();
+  }
+}
+
+// ------------------------------------------------------------
+//  Per-question exam SQL engine — runs INSERT/UPDATE/DELETE/
+//  CREATE/ALTER/DROP/SELECT against an isolated per-question
+//  seed table so "Your Output" vs "Expected Output" can show
+//  real columns & rows, not just raw SQL text.
+// ------------------------------------------------------------
+const EXAM_NOW = '2026-06-20T09:00:00.000Z';
+const EXAM_TODAY = '2026-06-20';
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function examCloneRows(rows) {
+  return (rows || []).map(r => ({ ...r }));
+}
+
+function examSplitTopLevel(str, sep) {
+  const parts = [];
+  let depth = 0, inQuote = null, cur = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (inQuote) {
+      cur += ch;
+      if (ch === inQuote) inQuote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"') { inQuote = ch; cur += ch; continue; }
+    if (ch === '(') { depth++; cur += ch; continue; }
+    if (ch === ')') { depth--; cur += ch; continue; }
+    if (ch === sep && depth === 0) { parts.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  parts.push(cur);
+  return parts.map(p => p.trim()).filter(p => p !== '');
+}
+
+function examParseValue(raw) {
+  const v = raw.trim().replace(/;$/, '');
+  if (/^'.*'$/.test(v) || /^".*"$/.test(v)) return v.slice(1, -1);
+  if (/^(NOW\(\)|CURRENT_TIMESTAMP)$/i.test(v)) return EXAM_NOW;
+  if (/^(CURDATE\(\)|CURRENT_DATE)$/i.test(v)) return EXAM_TODAY;
+  if (/^TRUE$/i.test(v)) return true;
+  if (/^FALSE$/i.test(v)) return false;
+  if (/^NULL$/i.test(v)) return null;
+  if (/^-?\d+(\.\d+)?$/.test(v)) return parseFloat(v);
+  return v;
+}
+
+function examParseWhere(whereStr, row) {
+  if (!whereStr || !whereStr.trim()) return true;
+  const conditions = whereStr.split(/\bAND\b/i);
+  return conditions.every(cond => {
+    const m = cond.match(/([\w.]+)\s*(>=|<=|!=|<>|=|>|<)\s*(.+)/);
+    if (!m) return true;
+    const col = m[1].split('.').pop().trim();
+    const op = m[2];
+    const val = examParseValue(m[3].trim());
+    const cell = row[col];
+    if (op === '=') return String(cell) == String(val);
+    if (op === '!=' || op === '<>') return String(cell) != String(val);
+    if (op === '>') return cell > val;
+    if (op === '<') return cell < val;
+    if (op === '>=') return cell >= val;
+    if (op === '<=') return cell <= val;
+    return true;
+  });
+}
+
+function examParseSet(setStr) {
+  return examSplitTopLevel(setStr, ',').map(a => {
+    const eq = a.indexOf('=');
+    return { col: a.slice(0, eq).trim(), rhs: a.slice(eq + 1).trim() };
+  });
+}
+
+function examApplySet(row, assigns) {
+  assigns.forEach(({ col, rhs }) => {
+    const exprMatch = rhs.match(/^([\w.]+)\s*([*+\-/])\s*(-?\d+(?:\.\d+)?)$/);
+    if (exprMatch) {
+      const refCol = exprMatch[1].split('.').pop();
+      const op = exprMatch[2];
+      const num = parseFloat(exprMatch[3]);
+      const base = parseFloat(row[refCol]) || 0;
+      let result = op === '*' ? base * num : op === '+' ? base + num : op === '-' ? base - num : base / num;
+      row[col] = Math.round(result * 100) / 100;
+    } else {
+      row[col] = examParseValue(rhs);
+    }
+  });
+  return row;
+}
+
+function examGetTableName(sql, kw) {
+  const m = sql.match(new RegExp(kw + '\\s+(?:TABLE\\s+)?(?:IF\\s+EXISTS\\s+)?(\\w+)', 'i'));
+  return m ? m[1] : null;
+}
+
+function examGetSelectColumns(sql, seed) {
+  const m = sql.match(/^SELECT\s+(.*?)\s+FROM/is);
+  const selectPart = m ? m[1].trim() : '*';
+  if (selectPart === '*') return seed ? seed.columns : [];
+  if (/COUNT|SUM|AVG|MAX|MIN/i.test(selectPart)) return null;
+  return selectPart.split(',').map(c => {
+    const asMatch = c.trim().match(/AS\s+(\w+)/i);
+    return asMatch ? asMatch[1] : c.trim().split('.').pop();
+  });
+}
+
+function examRunStatement(sql, seed) {
+  const clean = (sql || '').trim().replace(/;\s*$/, '');
+  if (!clean) throw new Error('Write a SQL statement first.');
+  const upper = clean.toUpperCase();
+
+  if (upper.startsWith('CREATE TABLE')) {
+    const m = clean.match(/CREATE TABLE\s+(\w+)\s*\(([\s\S]*)\)/i);
+    if (!m) throw new Error('Could not parse CREATE TABLE statement.');
+    const columns = examSplitTopLevel(m[2], ',').map(c => {
+      const parts = c.trim().split(/\s+/);
+      return { name: parts.shift(), type: parts.join(' ') };
+    });
+    return { kind: 'schema', table: m[1], columns };
+  }
+
+  if (upper.startsWith('ALTER TABLE')) {
+    if (!seed) throw new Error('No base table available for this question.');
+    let rows = examCloneRows(seed.rows);
+    let columns = [...seed.columns];
+    let m;
+    if ((m = clean.match(/RENAME\s+COLUMN\s+(\w+)\s+TO\s+(\w+)/i))) {
+      const [, oldC, newC] = m;
+      columns = columns.map(c => c === oldC ? newC : c);
+      rows = rows.map(r => {
+        const nr = {};
+        Object.keys(r).forEach(k => { nr[k === oldC ? newC : k] = r[k]; });
+        return nr;
+      });
+    } else if ((m = clean.match(/ADD\s+COLUMN\s+(\w+)\s+[\w()]+(?:\s+DEFAULT\s+(.+))?/i))) {
+      const [, col, defaultRaw] = m;
+      const defaultVal = defaultRaw !== undefined ? examParseValue(defaultRaw) : null;
+      columns = [...columns, col];
+      rows = rows.map(r => ({ ...r, [col]: defaultVal }));
+    } else if ((m = clean.match(/DROP\s+COLUMN\s+(\w+)/i))) {
+      const col = m[1];
+      columns = columns.filter(c => c !== col);
+      rows = rows.map(r => { const nr = { ...r }; delete nr[col]; return nr; });
+    } else if (/MODIFY\s+COLUMN\s+(\w+)/i.test(clean)) {
+      // type-only change — values stay the same
+    } else {
+      throw new Error('Unrecognized ALTER TABLE operation.');
+    }
+    return { kind: 'table', table: seed.table, columns, rows };
+  }
+
+  if (upper.startsWith('DROP TABLE')) {
+    return { kind: 'dropped', table: examGetTableName(clean, 'DROP') };
+  }
+
+  if (upper.startsWith('INSERT INTO')) {
+    if (!seed) throw new Error('No base table available for this question.');
+    const m = clean.match(/INSERT INTO\s+(\w+)\s*\(([^)]*)\)\s*VALUES\s*\(([\s\S]*)\)/i);
+    if (!m) throw new Error('Could not parse INSERT statement.');
+    const cols = examSplitTopLevel(m[2], ',');
+    const vals = examSplitTopLevel(m[3], ',').map(examParseValue);
+    const rows = examCloneRows(seed.rows);
+    const newRow = {};
+    seed.columns.forEach(c => newRow[c] = null);
+    cols.forEach((c, i) => { newRow[c] = vals[i]; });
+    rows.push(newRow);
+    return { kind: 'table', table: seed.table, columns: seed.columns, rows };
+  }
+
+  if (upper.startsWith('UPDATE')) {
+    if (!seed) throw new Error('No base table available for this question.');
+    const m = clean.match(/UPDATE\s+(\w+)\s+SET\s+([\s\S]+?)(?:\s+WHERE\s+([\s\S]+))?$/i);
+    if (!m) throw new Error('Could not parse UPDATE statement.');
+    const assigns = examParseSet(m[2]);
+    const whereStr = m[3];
+    const rows = examCloneRows(seed.rows).map(r => examParseWhere(whereStr, r) ? examApplySet({ ...r }, assigns) : r);
+    return { kind: 'table', table: seed.table, columns: seed.columns, rows };
+  }
+
+  if (upper.startsWith('DELETE FROM')) {
+    if (!seed) throw new Error('No base table available for this question.');
+    const m = clean.match(/DELETE FROM\s+(\w+)(?:\s+WHERE\s+([\s\S]+))?$/i);
+    if (!m) throw new Error('Could not parse DELETE statement.');
+    const whereStr = m[2];
+    const rows = examCloneRows(seed.rows).filter(r => !examParseWhere(whereStr, r));
+    return { kind: 'table', table: seed.table, columns: seed.columns, rows };
+  }
+
+  if (upper.startsWith('SELECT')) {
+    const seedDb = {};
+    if (seed) seedDb[seed.table] = examCloneRows(seed.rows);
+    const rows = parseAndRun(clean, seedDb);
+    const columns = rows.length ? Object.keys(rows[0]) : (examGetSelectColumns(clean, seed) || []);
+    return { kind: 'table', table: seed ? seed.table : null, columns, rows };
+  }
+
+  throw new Error('Unsupported SQL statement type.');
+}
+
+function examCompareResults(expected, user) {
+  if (!expected || !user) return false;
+  if (expected.kind !== user.kind) return false;
+  if (expected.kind === 'dropped') {
+    return (expected.table || '').toLowerCase() === (user.table || '').toLowerCase();
+  }
+  if (expected.kind === 'schema') {
+    const norm = cols => (cols || []).map(c => `${(c.name || '').toLowerCase()}|${(c.type || '').toUpperCase().replace(/\s+/g, ' ').trim()}`).join(',');
+    return norm(expected.columns) === norm(user.columns);
+  }
+  const ecols = (expected.columns || []).join('|').toLowerCase();
+  const ucols = (user.columns || []).join('|').toLowerCase();
+  if (ecols !== ucols) return false;
+  return JSON.stringify(expected.rows) === JSON.stringify(user.rows);
+}
+
+function formatCellValue(v) {
+  if (v === null || v === undefined) return '<span class="null-val">NULL</span>';
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  return escapeHtml(String(v));
+}
+
+function renderTableSnapshotHtml(columns, rows) {
+  if (!columns || !columns.length) return '<div class="placeholder">No columns to display.</div>';
+  let html = `<table class="result-table"><thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody>`;
+  if (!rows || !rows.length) {
+    html += `<tr><td colspan="${columns.length}" class="placeholder-cell">0 rows</td></tr>`;
+  } else {
+    html += rows.map(r => `<tr>${columns.map(c => `<td>${formatCellValue(r[c])}</td>`).join('')}</tr>`).join('');
+  }
   html += '</tbody></table>';
   return html;
 }
 
-function renderRowsInto(el, rows) {
-  if (!el) return;
-  el.innerHTML = renderRowsHtml(rows);
+function examRenderResult(result) {
+  if (!result) return '<div class="placeholder">No output yet.</div>';
+  if (result.kind === 'schema') {
+    if (!result.columns.length) return '<div class="placeholder">No columns defined.</div>';
+    return `<table class="result-table"><thead><tr>${result.columns.map(c => `<th>${escapeHtml(c.name)}</th>`).join('')}</tr></thead><tbody><tr>${result.columns.map(c => `<td class="type-cell">${escapeHtml(c.type || '')}</td>`).join('')}</tr></tbody></table>`;
+  }
+  if (result.kind === 'dropped') {
+    return `<div class="dropped-note">Table <code>${escapeHtml(result.table || '')}</code> dropped — no columns or rows remain.</div>`;
+  }
+  return renderTableSnapshotHtml(result.columns, result.rows);
 }
 
-function renderTextHtml(header, text) {
-  return `
-    <table class="result-table">
-      <thead><tr><th>${header}</th></tr></thead>
-      <tbody><tr><td>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td></tr></tbody>
-    </table>`;
-}
+function renderExamRightPanel(qData, userResult, userError, checked) {
+  const list = document.getElementById('exam-testcases-list');
+  if (!list) return;
+  const seed = EXAM_SEEDS[qData.question.num] || null;
 
-function buildTestcaseCard(status, title, expectedHtml, actualHtml, showWrongButton = false) {
-  return `
+  let expectedResult = null, expectedFailed = false;
+  try { expectedResult = examRunStatement(qData.question.answer, seed); }
+  catch (e) { expectedFailed = true; }
+
+  const yourHtml = userError
+    ? `<div class="exam-output-error">⚠ ${escapeHtml(userError)}</div>`
+    : userResult
+      ? examRenderResult(userResult)
+      : `<div class="placeholder">Click "Check Answer" to run your query.</div>`;
+
+  const expectedHtml = expectedFailed
+    ? `<div class="placeholder">Expected output unavailable for this question.</div>`
+    : examRenderResult(expectedResult);
+
+  let status = '';
+  if (checked) {
+    status = (!userError && !expectedFailed && examCompareResults(expectedResult, userResult)) ? 'pass' : 'fail';
+  }
+
+  list.innerHTML = `
     <div class="exam-testcase-card ${status}">
-      <div class="testcase-title">${title}</div>
-      <div class="testcase-status">${status === 'pass' ? 'Passed' : 'Failed'}</div>
+      ${status ? `<div class="testcase-title-row"><span class="testcase-status-icon">${status === 'pass' ? '✓' : '✗'}</span><span class="testcase-title">${status === 'pass' ? 'Passed' : 'Failed'}</span></div>` : ''}
       <div class="exam-testcase-block">
+        <div class="testcase-block-item">
+          <div class="testcase-label">Your output</div>
+          ${yourHtml}
+        </div>
         <div class="testcase-block-item">
           <div class="testcase-label">Expected output</div>
           ${expectedHtml}
         </div>
-        <div class="testcase-block-item">
-          <div class="testcase-label">Actual output</div>
-          ${actualHtml}
-        </div>
       </div>
-      ${showWrongButton ? `<button class="btn btn-danger testcase-action-btn" onclick="this.closest('.exam-testcase-card').classList.toggle('show-diff')">See what's wrong</button>` : ''}
-      ${showWrongButton ? '<div class="testcase-note diff-info">Compare values column-by-column and adjust your query.</div>' : ''}
     </div>`;
 }
 
@@ -848,57 +1114,33 @@ function checkExamAnswer() {
   const userSql = (document.getElementById('exam-answer-input').value || '').trim();
   examAnswers[examQ] = userSql;
   const fb = document.getElementById('exam-feedback');
-  if (fb) { fb.style.display='none'; fb.textContent=''; }
+  if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
 
   if (!userSql) {
-    if (fb) { fb.style.display='block'; fb.textContent = 'Write an answer before checking.'; }
+    if (fb) { fb.style.display = 'block'; fb.textContent = 'Write an answer before checking.'; }
     return;
   }
 
-  const expectedSql = (qData.question.answer || '').trim();
-  const testList = document.getElementById('exam-testcases-list');
-  try {
-    if (/^SELECT\b/i.test(expectedSql)) {
-      const userRes = executeSQLQuery(userSql, DB);
-      const expRes = executeSQLQuery(expectedSql, DB);
-      const userRows = userRes.rows;
-      const expRows = expRes.rows;
-      const ok = JSON.stringify(userRows) === JSON.stringify(expRows);
-      const cardHtml = buildTestcaseCard(
-        ok ? 'pass' : 'fail',
-        'Test case #1',
-        renderRowsHtml(expRows),
-        renderRowsHtml(userRows),
-        !ok
-      );
-      if (testList) testList.innerHTML = cardHtml;
-      if (fb) { fb.style.display='block'; fb.textContent = ok ? '✓ Correct — output matches expected.' : '✗ Output does not match expected.'; }
-      if (ok) confettiPop();
-    } else {
-      const norm = s => s.replace(/;$/, '').replace(/\s+/g, ' ').trim().toUpperCase();
-      const ok = norm(userSql) === norm(expectedSql);
-      const cardHtml = buildTestcaseCard(
-        ok ? 'pass' : 'fail',
-        'Test case #1',
-        renderTextHtml('Expected SQL', expectedSql),
-        renderTextHtml('Your SQL', userSql),
-        !ok
-      );
-      if (testList) testList.innerHTML = cardHtml;
-      if (fb) { fb.style.display='block'; fb.textContent = ok ? '✓ Correct — statement matches expected.' : '✗ Statement differs from expected.'; }
-      if (ok) confettiPop();
-    }
-  } catch(e) {
-    if (fb) { fb.style.display='block'; fb.textContent = '⚠ ' + e.message; }
-    const cardHtml = buildTestcaseCard(
-      'fail',
-      'Test case #1',
-      renderTextHtml('Expected SQL', expectedSql),
-      renderTextHtml('Actual error', e.message),
-      true
-    );
-    if (testList) testList.innerHTML = cardHtml;
+  const seed = EXAM_SEEDS[qData.question.num] || null;
+  let userResult = null, userError = null;
+  try { userResult = examRunStatement(userSql, seed); }
+  catch (e) { userError = e.message; }
+
+  renderExamRightPanel(qData, userResult, userError, true);
+
+  let pass = false;
+  if (!userError) {
+    try {
+      const expectedResult = examRunStatement(qData.question.answer, seed);
+      pass = examCompareResults(expectedResult, userResult);
+    } catch (e) { /* leave pass = false */ }
   }
+
+  if (fb) {
+    fb.style.display = 'block';
+    fb.textContent = userError ? ('⚠ ' + userError) : (pass ? '✓ Correct — output matches expected.' : '✗ Output does not match expected.');
+  }
+  if (pass) confettiPop();
 }
 
 function finishExam() {
@@ -919,6 +1161,7 @@ document.getElementById('exam-back-btn')?.addEventListener('click', () => showPa
 document.getElementById('exam-result-back-btn')?.addEventListener('click', () => showPage('exams'));
 document.getElementById('exam-result-retry-btn')?.addEventListener('click', () => startExam(activeExam.id));
 document.getElementById('exam-check-btn')?.addEventListener('click', checkExamAnswer);
+document.getElementById('exam-prev-btn')?.addEventListener('click', prevExamQuestion);
 document.getElementById('exam-next-btn')?.addEventListener('click', nextExamQuestion);
 
 // ============================================================

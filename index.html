@@ -366,47 +366,76 @@
 
   <!-- =================== EXAM ACTIVE =================== -->
   <section class="page" id="page-exam-active">
-    <div class="page-header exam-active-header">
-      <button class="btn btn-ghost" id="exam-back-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Exams
-      </button>
-      <div class="exam-progress-wrap">
-        <span class="exam-progress-label" id="exam-progress-label">1 / 50</span>
-        <div class="progress-track" style="width:200px">
+    <div class="exam-mode" id="exam-content-area">
+
+      <!-- slim top bar -->
+      <div class="exam-top-bar">
+        <button class="btn btn-ghost exam-home-btn" id="exam-back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Exams
+        </button>
+        <div class="exam-top-title" id="exam-problem-title"></div>
+        <div class="progress-track exam-top-progress">
           <div class="progress-fill" id="exam-progress-fill" style="width:2%"></div>
         </div>
       </div>
-    </div>
-    <div id="exam-content-area">
-      <div class="exam-question-card exam-layout-grid">
-        <div class="exam-left">
-          <div class="exam-question-section" id="exam-section-title"></div>
-          <div class="exam-question-number" id="exam-question-number"></div>
-          <div class="exam-scenario" id="exam-scenario"></div>
-          <div class="exam-answer-area">
-            <textarea class="exam-answer-input" id="exam-answer-input" placeholder="Write your SQL statement here..."></textarea>
+
+      <!-- 3-pane body -->
+      <div class="exam-panes">
+
+        <!-- LEFT: question -->
+        <div class="exam-pane exam-pane-problem">
+          <div class="exam-pane-scroll">
+            <div class="exam-problem-meta-row">
+              <span class="badge-chip" id="exam-section-badge"></span>
+              <span class="exam-meta-label">Section</span>
+              <span class="exam-problem-author" id="exam-section-title"></span>
+            </div>
+            <div class="exam-question-number" id="exam-question-number"></div>
+            <p class="exam-scenario" id="exam-scenario"></p>
             <div class="exam-answer-hint" id="exam-answer-hint"></div>
           </div>
-          <div class="exam-buttons">
-            <button class="btn btn-primary" id="exam-check-btn">Check Answer</button>
-            <button class="btn btn-ghost" id="exam-next-btn">Next Question</button>
+        </div>
+
+        <!-- MIDDLE: compiler / editor -->
+        <div class="exam-pane exam-pane-editor">
+          <div class="exam-editor-tabbar">
+            <span class="exam-editor-tab">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              answer.sql
+            </span>
+          </div>
+          <textarea class="exam-editor-textarea" id="exam-answer-input" placeholder="Write your SQL statement here..." spellcheck="false"></textarea>
+        </div>
+
+        <!-- RIGHT: test case / output -->
+        <div class="exam-pane exam-pane-tests" id="exam-right-panel">
+          <div class="exam-testcases-header">
+            <div>
+              <div class="page-title">Test Case</div>
+              <div class="page-sub">Compare your output with the expected result.</div>
+            </div>
+            <button class="btn btn-primary exam-check-btn" id="exam-check-btn">Check Answer</button>
           </div>
           <div class="exam-feedback" id="exam-feedback" style="display:none"></div>
+          <div id="exam-testcases-list" class="exam-testcases-list"></div>
         </div>
-        <div class="exam-right" id="exam-right-panel">
-          <div class="exam-testcases-header">
-            <div class="page-title">Test cases</div>
-            <div class="page-sub">Review expected vs actual output for this question.</div>
-          </div>
-          <div id="exam-testcases-list" class="exam-testcases-list">
-            <div class="exam-testcase-card placeholder-card">
-              <div class="testcase-title">Test case #1</div>
-              <div class="testcase-status">Run your query to display results here.</div>
-            </div>
-          </div>
-        </div>
+
       </div>
+
+      <!-- bottom bar -->
+      <div class="exam-bottom-bar">
+        <button class="btn btn-ghost exam-nav-btn" id="exam-prev-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Previous
+        </button>
+        <span class="exam-progress-label" id="exam-progress-label">Question 1 / 50</span>
+        <button class="btn btn-primary exam-nav-btn" id="exam-next-btn">
+          Next Question
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
     </div>
     <div id="exam-result-area" style="display:none">
       <div class="exam-result-card">
