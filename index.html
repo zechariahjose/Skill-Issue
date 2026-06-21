@@ -357,7 +357,7 @@
   <section class="page" id="page-exams">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Certification Exams</h1>
+        <h1 class="page-title">SQL Exams</h1>
         <p class="page-sub">Complete SQL exams to test your mastery — CREATE, ALTER, INSERT, SELECT, UPDATE, DELETE, DROP</p>
       </div>
     </div>
@@ -404,8 +404,21 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
               answer.sql
             </span>
+            <span class="exam-editor-dialect">MySQL-ish</span>
           </div>
-          <textarea class="exam-editor-textarea" id="exam-answer-input" placeholder="Write your SQL statement here..." spellcheck="false"></textarea>
+          <div class="exam-code-editor">
+            <div class="exam-code-gutter" id="exam-code-gutter">1</div>
+            <div class="exam-code-area">
+              <pre class="exam-code-highlight" id="exam-code-highlight" aria-hidden="true"><code>&nbsp;</code></pre>
+              <textarea class="exam-editor-textarea" id="exam-answer-input" placeholder="Write your SQL statement here..." spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off"></textarea>
+            </div>
+          </div>
+          <div class="exam-editor-statusbar">
+            <span id="exam-editor-cursor-pos">Ln 1, Col 1</span>
+            <span class="exam-editor-statusbar-sep">•</span>
+            <span id="exam-editor-charcount">0 chars</span>
+            <span class="exam-editor-statusbar-hint">Tab to indent · Ctrl+Enter to check</span>
+          </div>
         </div>
 
         <!-- RIGHT: test case / output -->
@@ -439,8 +452,12 @@
     </div>
     <div id="exam-result-area" style="display:none">
       <div class="exam-result-card">
-        <div class="result-title">Exam Complete!</div>
-        <div class="result-message" id="exam-result-message">You have completed all 50 questions.</div>
+        <div class="result-title" id="exam-result-title">Exam Complete!</div>
+        <div class="exam-score-ring" id="exam-score-ring">
+          <span class="exam-score-pct" id="exam-score-pct">0%</span>
+        </div>
+        <div class="exam-score-fraction" id="exam-score-fraction">0 / 50 correct</div>
+        <div class="result-message" id="exam-result-message"></div>
         <div class="result-btns">
           <button class="btn btn-ghost" id="exam-result-back-btn">Back to exams</button>
           <button class="btn btn-primary" id="exam-result-retry-btn">Retake exam</button>

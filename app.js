@@ -741,13 +741,14 @@ function renderExamHome() {
   });
 }
 
-let activeExam = null, examQ = 0, examAnswers = {};
+let activeExam = null, examQ = 0, examAnswers = {}, examResults = {};
 
 function startExam(id) {
   activeExam = EXAMS.find(e => e.id === id);
   if (!activeExam) return;
   examQ = 0;
   examAnswers = {};
+  examResults = {};
   document.getElementById('exam-result-area').style.display = 'none';
   document.getElementById('exam-content-area').style.display = 'flex';
   showPage('exam-active');
@@ -791,6 +792,7 @@ function renderExamQuestion() {
 
   const inputArea = document.getElementById('exam-answer-input');
   inputArea.value = examAnswers[examQ] || '';
+  updateExamEditorView();
 
   const fb = document.getElementById('exam-feedback');
   if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
@@ -819,6 +821,102 @@ function prevExamQuestion() {
     renderExamQuestion();
   }
 }
+
+// ------------------------------------------------------------
+//  Compiler-style editor: syntax highlighting, line-number
+//  gutter, and a live cursor/character status bar.
+// ------------------------------------------------------------
+const SQL_KEYWORDS = ['SELECT','FROM','WHERE','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE',
+  'ALTER','ADD','COLUMN','DROP','RENAME','TO','MODIFY','PRIMARY','KEY','DEFAULT','NOT','NULL','AND','OR',
+  'ORDER','BY','GROUP','HAVING','LIMIT','OFFSET','AS','JOIN','INNER','LEFT','RIGHT','OUTER','ON','DISTINCT',
+  'COUNT','SUM','AVG','MAX','MIN','BETWEEN','LIKE','IN','IS','ASC','DESC','VARCHAR','INT','INTEGER','BOOLEAN',
+  'BOOL','DATE','DATETIME','TIMESTAMP','DECIMAL','FLOAT','DOUBLE','TEXT','CHAR','TRUE','FALSE','CURRENT_DATE',
+  'CURRENT_TIMESTAMP','NOW','CURDATE','AUTO_INCREMENT','UNIQUE','FOREIGN','REFERENCES','CASCADE','IF','EXISTS'];
+
+function examHighlightSQL(code) {
+  const pattern = /('(?:[^'\\]|\\.)*')|(--[^\n]*)|(\b\d+\.?\d*\b)|(\b[A-Za-z_][A-Za-z0-9_]*\b)/g;
+  let result = '', lastIndex = 0, m;
+  while ((m = pattern.exec(code))) {
+    result += escapeHtml(code.slice(lastIndex, m.index));
+    if (m[1]) result += `<span class="tok-str">${escapeHtml(m[1])}</span>`;
+    else if (m[2]) result += `<span class="tok-com">${escapeHtml(m[2])}</span>`;
+    else if (m[3]) result += `<span class="tok-num">${escapeHtml(m[3])}</span>`;
+    else if (m[4]) {
+      const word = m[4];
+      result += SQL_KEYWORDS.includes(word.toUpperCase())
+        ? `<span class="tok-kw">${escapeHtml(word)}</span>`
+        : escapeHtml(word);
+    }
+    lastIndex = pattern.lastIndex;
+  }
+  result += escapeHtml(code.slice(lastIndex));
+  return result;
+}
+
+function updateExamEditorView() {
+  const ta = document.getElementById('exam-answer-input');
+  const hl = document.getElementById('exam-code-highlight');
+  const gutter = document.getElementById('exam-code-gutter');
+  const charCount = document.getElementById('exam-editor-charcount');
+  if (!ta) return;
+  const code = ta.value;
+
+  if (hl) hl.innerHTML = `<code>${examHighlightSQL(code)}\n</code>`;
+
+  if (gutter) {
+    const lineCount = code.split('\n').length;
+    let g = '';
+    for (let i = 1; i <= lineCount; i++) g += i + (i < lineCount ? '\n' : '');
+    gutter.textContent = g;
+  }
+
+  if (charCount) charCount.textContent = `${code.length} char${code.length === 1 ? '' : 's'}`;
+
+  updateExamCursorPos();
+}
+
+function updateExamCursorPos() {
+  const ta = document.getElementById('exam-answer-input');
+  const posEl = document.getElementById('exam-editor-cursor-pos');
+  if (!ta || !posEl) return;
+  const value = ta.value;
+  const caret = ta.selectionStart;
+  const upToCaret = value.slice(0, caret);
+  const lines = upToCaret.split('\n');
+  const line = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  posEl.textContent = `Ln ${line}, Col ${col}`;
+}
+
+function initExamEditor() {
+  const ta = document.getElementById('exam-answer-input');
+  const hl = document.getElementById('exam-code-highlight');
+  const gutter = document.getElementById('exam-code-gutter');
+  if (!ta) return;
+
+  ta.addEventListener('input', updateExamEditorView);
+  ta.addEventListener('click', updateExamCursorPos);
+  ta.addEventListener('keyup', updateExamCursorPos);
+
+  ta.addEventListener('scroll', () => {
+    if (hl) { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; }
+    if (gutter) gutter.scrollTop = ta.scrollTop;
+  });
+
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.slice(0, start) + '  ' + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + 2;
+      updateExamEditorView();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      checkExamAnswer();
+    }
+  });
+}
+initExamEditor();
 
 // ------------------------------------------------------------
 //  Per-question exam SQL engine — runs INSERT/UPDATE/DELETE/
@@ -1121,26 +1219,34 @@ function checkExamAnswer() {
     return;
   }
 
-  const seed = EXAM_SEEDS[qData.question.num] || null;
-  let userResult = null, userError = null;
-  try { userResult = examRunStatement(userSql, seed); }
-  catch (e) { userError = e.message; }
+  const checkBtn = document.getElementById('exam-check-btn');
+  if (checkBtn) { checkBtn.disabled = true; checkBtn.textContent = 'Running...'; }
 
-  renderExamRightPanel(qData, userResult, userError, true);
+  setTimeout(() => {
+    const seed = EXAM_SEEDS[qData.question.num] || null;
+    let userResult = null, userError = null;
+    try { userResult = examRunStatement(userSql, seed); }
+    catch (e) { userError = e.message; }
 
-  let pass = false;
-  if (!userError) {
-    try {
-      const expectedResult = examRunStatement(qData.question.answer, seed);
-      pass = examCompareResults(expectedResult, userResult);
-    } catch (e) { /* leave pass = false */ }
-  }
+    renderExamRightPanel(qData, userResult, userError, true);
 
-  if (fb) {
-    fb.style.display = 'block';
-    fb.textContent = userError ? ('⚠ ' + userError) : (pass ? '✓ Correct — output matches expected.' : '✗ Output does not match expected.');
-  }
-  if (pass) confettiPop();
+    let pass = false;
+    if (!userError) {
+      try {
+        const expectedResult = examRunStatement(qData.question.answer, seed);
+        pass = examCompareResults(expectedResult, userResult);
+      } catch (e) { /* leave pass = false */ }
+    }
+
+    examResults[examQ] = pass;
+
+    if (fb) {
+      fb.style.display = 'block';
+      fb.textContent = userError ? ('⚠ ' + userError) : (pass ? '✓ Correct — output matches expected.' : '✗ Output does not match expected.');
+    }
+    if (checkBtn) { checkBtn.disabled = false; checkBtn.textContent = 'Check Answer'; }
+    if (pass) confettiPop();
+  }, 350);
 }
 
 function finishExam() {
@@ -1148,13 +1254,33 @@ function finishExam() {
   const resultArea = document.getElementById('exam-result-area');
   resultArea.style.display = 'flex';
   resultArea.style.justifyContent = 'center';
+
   const total = getExamQuestionCount();
-  document.getElementById('exam-result-message').innerHTML = `
-    <div style="text-align:center">
-      <div style="font-size:18px; margin-bottom:10px">You completed all ${total} exam questions!</div>
-      <div style="color:var(--text-faint); font-size:14px">Review your answers and compare with the solutions provided.</div>
-    </div>`;
-  confettiPop();
+  const correct = Object.values(examResults).filter(Boolean).length;
+  const pct = total ? Math.round((correct / total) * 100) : 0;
+
+  const ring = document.getElementById('exam-score-ring');
+  if (ring) {
+    ring.style.setProperty('--pct', pct);
+    ring.classList.remove('tier-high', 'tier-mid', 'tier-low');
+    ring.classList.add(pct >= 80 ? 'tier-high' : pct >= 50 ? 'tier-mid' : 'tier-low');
+  }
+  const pctEl = document.getElementById('exam-score-pct');
+  if (pctEl) pctEl.textContent = pct + '%';
+  const fractionEl = document.getElementById('exam-score-fraction');
+  if (fractionEl) fractionEl.textContent = `${correct} / ${total} correct`;
+
+  const titleEl = document.getElementById('exam-result-title');
+  if (titleEl) titleEl.textContent = pct >= 80 ? 'Great job!' : pct >= 50 ? 'Exam Complete!' : 'Exam Complete';
+
+  const msg = pct >= 80
+    ? "Excellent work — you've got a strong handle on this material."
+    : pct >= 50
+      ? 'Solid effort. Review the questions you missed and try again.'
+      : "Keep practicing — review the explanations and retake the exam when you're ready.";
+  document.getElementById('exam-result-message').textContent = msg;
+
+  if (pct >= 50) confettiPop();
 }
 
 document.getElementById('exam-back-btn')?.addEventListener('click', () => showPage('exams'));

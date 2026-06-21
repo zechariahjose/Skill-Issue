@@ -1224,3 +1224,207 @@ const EXAMS = [
     ]
   }
 ];
+
+// ============================================================
+//  EXAM SEEDS — per-question sample tables used by exam mode
+//  to compute "Your Output" vs "Expected Output". CREATE TABLE
+//  questions (1–10) need no seed since there's no prior data.
+// ============================================================
+const EXAM_SEEDS = {
+  // ---- ALTER TABLE (11–20) ----
+  11: { table: "inventory", columns: ["id","item_name","cost","quantity"], rows: [
+    { id: 1, item_name: "Steel Bolts", cost: 12.50, quantity: 500 },
+    { id: 2, item_name: "Copper Wire", cost: 34.00, quantity: 120 },
+    { id: 3, item_name: "Aluminum Sheet", cost: 58.75, quantity: 75 }
+  ]},
+  12: { table: "user_profiles", columns: ["user_id","username","email"], rows: [
+    { user_id: 1, username: "jdoe", email: "jdoe@bank.com" },
+    { user_id: 2, username: "asmith", email: "asmith@bank.com" },
+    { user_id: 3, username: "mlee", email: "mlee@bank.com" }
+  ]},
+  13: { table: "students", columns: ["student_id","name","phone_number"], rows: [
+    { student_id: 1, name: "Liam Cruz", phone_number: "09171234567" },
+    { student_id: 2, name: "Mia Santos", phone_number: "09281234567" },
+    { student_id: 3, name: "Noah Reyes", phone_number: "+19171234567" }
+  ]},
+  14: { table: "player_accounts", columns: ["account_id","username","facebook_login_id"], rows: [
+    { account_id: 1, username: "shadowblade", facebook_login_id: "fb_88210" },
+    { account_id: 2, username: "nightfury", facebook_login_id: "fb_77310" },
+    { account_id: 3, username: "ironclaw", facebook_login_id: "fb_99120" }
+  ]},
+  15: { table: "aircraft", columns: ["tail_number","model","carrier"], rows: [
+    { tail_number: "PH-001", model: "Airbus A320", carrier: "SkyJet" },
+    { tail_number: "PH-002", model: "Boeing 737", carrier: "PacWings" },
+    { tail_number: "PH-003", model: "Airbus A330", carrier: "SkyJet" }
+  ]},
+  16: { table: "aircraft", columns: ["tail_number","model","status"], rows: [
+    { tail_number: "PH-101", model: "Boeing 777", status: "Active" },
+    { tail_number: "PH-102", model: "Airbus A350", status: "Active" },
+    { tail_number: "PH-103", model: "Boeing 787", status: "Maintenance" }
+  ]},
+  17: { table: "subscriptions", columns: ["client_id","plan","price"], rows: [
+    { client_id: 1, plan: "Basic", price: 9.99 },
+    { client_id: 2, plan: "Pro", price: 29.99 },
+    { client_id: 3, plan: "Basic", price: 9.99 }
+  ]},
+  18: { table: "subscriptions", columns: ["client_id","plan_type","price"], rows: [
+    { client_id: 1, plan_type: "Starter", price: 15.00 },
+    { client_id: 2, plan_type: "Growth", price: 45.00 },
+    { client_id: 3, plan_type: "Starter", price: 15.00 }
+  ]},
+  19: { table: "customers", columns: ["customer_id","name","facebook_id"], rows: [
+    { customer_id: 1, name: "Carla Dizon", facebook_id: "fb_5512" },
+    { customer_id: 2, name: "Ramon Bautista", facebook_id: "fb_8821" },
+    { customer_id: 3, name: "Teresa Lim", facebook_id: "fb_3390" }
+  ]},
+  20: { table: "warehouse_inventory", columns: ["sku","item_name","cost"], rows: [
+    { sku: "WH-001", item_name: "Pallet Jack", cost: 450.00 },
+    { sku: "WH-002", item_name: "Forklift Battery", cost: 1200.00 },
+    { sku: "WH-003", item_name: "Shelving Unit", cost: 300.00 }
+  ]},
+
+  // ---- INSERT INTO (21–30) ----
+  21: { table: "clients", columns: ["client_id","name","retainer_fee","registration_date"], rows: [
+    { client_id: 1, name: "Bayview Legal", retainer_fee: 3000, registration_date: "2024-01-15" },
+    { client_id: 2, name: "Solstice Holdings", retainer_fee: 4200, registration_date: "2024-03-02" }
+  ]},
+  22: { table: "hotel_checkins", columns: ["checkin_id","guest_id","room_number","checkin_time"], rows: [
+    { checkin_id: 1, guest_id: 881, room_number: 210, checkin_time: "2026-06-19T14:00:00.000Z" },
+    { checkin_id: 2, guest_id: 902, room_number: 305, checkin_time: "2026-06-19T16:30:00.000Z" }
+  ]},
+  23: { table: "sensor_readings", columns: ["reading_id","sensor_id","soil_moisture","reading_time"], rows: [
+    { reading_id: 1, sensor_id: 5, soil_moisture: 38.2, reading_time: "2026-06-19T06:00:00.000Z" },
+    { reading_id: 2, sensor_id: 9, soil_moisture: 55.0, reading_time: "2026-06-19T06:05:00.000Z" }
+  ]},
+  24: { table: "workouts", columns: ["workout_id","member_id","duration_minutes","calories_burned"], rows: [
+    { workout_id: 1, member_id: 201, duration_minutes: 30, calories_burned: 220 },
+    { workout_id: 2, member_id: 355, duration_minutes: 60, calories_burned: 480 }
+  ]},
+  25: { table: "tracks", columns: ["track_id","title","artist","duration_seconds"], rows: [
+    { track_id: 1, title: "Golden Hour", artist: "Wave Theory", duration_seconds: 198 },
+    { track_id: 2, title: "Static Bloom", artist: "Echo Lane", duration_seconds: 225 }
+  ]},
+  26: { table: "flights", columns: ["flight_id","battery_percentage"], rows: [
+    { flight_id: 5, battery_percentage: 64.0 },
+    { flight_id: 6, battery_percentage: 91.2 }
+  ]},
+  27: { table: "promo_codes", columns: ["code_id","code","discount_percentage","expiration_date"], rows: [
+    { code_id: 1, code: "WELCOME10", discount_percentage: 10.0, expiration_date: "2026-09-30" },
+    { code_id: 2, code: "SUMMER15", discount_percentage: 15.0, expiration_date: "2026-08-15" }
+  ]},
+  28: { table: "ocean_metrics", columns: ["metric_id","temperature","salinity","gps_coordinates"], rows: [
+    { metric_id: 1, temperature: 19.8, salinity: 34.1, gps_coordinates: "34.0195,-118.4912" },
+    { metric_id: 2, temperature: 21.0, salinity: 35.5, gps_coordinates: "36.7783,-119.4179" }
+  ]},
+  29: { table: "accounts", columns: ["account_id","name","portfolio_value"], rows: [
+    { account_id: 1, name: "Maria Lopez", portfolio_value: 850000.00 },
+    { account_id: 2, name: "Henry Tan", portfolio_value: 2300000.00 }
+  ]},
+  30: { table: "employees", columns: ["employee_id","performance_rating"], rows: [
+    { employee_id: 1010, performance_rating: "Good" },
+    { employee_id: 1021, performance_rating: "Satisfactory" }
+  ]},
+
+  // ---- SELECT (31–40) ----
+  31: { table: "accounts", columns: ["account_id","name","portfolio_value"], rows: [
+    { account_id: 1, name: "Maria Lopez", portfolio_value: 850000 },
+    { account_id: 2, name: "Henry Tan", portfolio_value: 2300000 },
+    { account_id: 3, name: "Wealth Trust Fund", portfolio_value: 5400000 },
+    { account_id: 4, name: "Sam Cruz", portfolio_value: 420000 }
+  ]},
+  32: { table: "system_logs", columns: ["log_id","status","country_origin"], rows: [
+    { log_id: 1, status: "failed", country_origin: "Russia" },
+    { log_id: 2, status: "success", country_origin: "Domestic" },
+    { log_id: 3, status: "failed", country_origin: "Domestic" },
+    { log_id: 4, status: "failed", country_origin: "China" }
+  ]},
+  33: { table: "employees", columns: ["employee_id","performance_rating","years_with_company"], rows: [
+    { employee_id: 1, performance_rating: "Excellent", years_with_company: 5 },
+    { employee_id: 2, performance_rating: "Excellent", years_with_company: 2 },
+    { employee_id: 3, performance_rating: "Good", years_with_company: 6 },
+    { employee_id: 4, performance_rating: "Excellent", years_with_company: 4 }
+  ]},
+  34: { table: "customers", columns: ["customer_id","first_name","last_name","email"], rows: [
+    { customer_id: 1, first_name: "Ana", last_name: "Cruz", email: "ana.cruz@mail.com" },
+    { customer_id: 2, first_name: "Leo", last_name: "Reyes", email: "leo.reyes@mail.com" },
+    { customer_id: 3, first_name: "Mika", last_name: "Tan", email: "mika.tan@mail.com" }
+  ]},
+  35: { table: "patients", columns: ["patient_id","age","side_effect"], rows: [
+    { patient_id: 1, age: 65, side_effect: "Side Effect A" },
+    { patient_id: 2, age: 58, side_effect: "Side Effect A" },
+    { patient_id: 3, age: 72, side_effect: "Side Effect B" },
+    { patient_id: 4, age: 81, side_effect: "Side Effect A" }
+  ]},
+  36: { table: "parts", columns: ["part_id","batch_id","inspection_status"], rows: [
+    { part_id: 1, batch_id: "AB-99", inspection_status: "passed" },
+    { part_id: 2, batch_id: "AB-99", inspection_status: "failed" },
+    { part_id: 3, batch_id: "CD-12", inspection_status: "passed" },
+    { part_id: 4, batch_id: "AB-99", inspection_status: "passed" }
+  ]},
+  37: { table: "promo_codes", columns: ["code_id","code","discount_percentage"], rows: [
+    { code_id: 1, code: "WELCOME10", discount_percentage: 10 },
+    { code_id: 2, code: "SUMMER15", discount_percentage: 15 },
+    { code_id: 3, code: "FLASH25", discount_percentage: 25 }
+  ]},
+  38: { table: "ocean_metrics", columns: ["metric_id","salinity"], rows: [
+    { metric_id: 1, salinity: 34.1 },
+    { metric_id: 2, salinity: 35.5 },
+    { metric_id: 3, salinity: 36.0 }
+  ]},
+  39: { table: "inventory", columns: ["product_id","available_stock","threshold_level"], rows: [
+    { product_id: 1, available_stock: 12, threshold_level: 20 },
+    { product_id: 2, available_stock: 50, threshold_level: 30 },
+    { product_id: 3, available_stock: 5, threshold_level: 10 }
+  ]},
+  40: { table: "system_logs", columns: ["log_id","status","country_origin"], rows: [
+    { log_id: 1, status: "success", country_origin: "Domestic" },
+    { log_id: 2, status: "failed", country_origin: "Japan" },
+    { log_id: 3, status: "success", country_origin: "Domestic" }
+  ]},
+
+  // ---- UPDATE (41–45) ----
+  41: { table: "inventory", columns: ["product_id","name","category","price"], rows: [
+    { product_id: 1, name: "Wireless Mouse", category: "electronics", price: 25.00 },
+    { product_id: 2, name: "Office Chair", category: "furniture", price: 120.00 },
+    { product_id: 3, name: "Bluetooth Speaker", category: "electronics", price: 60.00 }
+  ]},
+  42: { table: "employees", columns: ["employee_id","first_name","last_name","email","department"], rows: [
+    { employee_id: 1, first_name: "Jane", last_name: "Doe", email: "jane.doe@company.com", department: "Sales" },
+    { employee_id: 2, first_name: "Mark", last_name: "Lee", email: "mark.lee@company.com", department: "IT" }
+  ]},
+  43: { table: "shipments", columns: ["shipment_id","delivery_status","delivery_timestamp"], rows: [
+    { shipment_id: 1, delivery_status: "In Transit", delivery_timestamp: null },
+    { shipment_id: 2, delivery_status: "In Transit", delivery_timestamp: null }
+  ]},
+  44: { table: "accounts", columns: ["account_id","name","portfolio_value"], rows: [
+    { account_id: 1, name: "Diane Cruz", portfolio_value: 10000 },
+    { account_id: 2, name: "Mark Villar", portfolio_value: 25000 }
+  ]},
+  45: { table: "subscriptions", columns: ["client_id","plan_type","max_users"], rows: [
+    { client_id: 88, plan_type: "Pro", max_users: 10 },
+    { client_id: 90, plan_type: "Basic", max_users: 5 }
+  ]},
+
+  // ---- DELETE + DROP (46–50) ----
+  46: { table: "inventory", columns: ["product_id","product_name","expiration_date"], rows: [
+    { product_id: 1, product_name: "milk", expiration_date: "2026-06-10" },
+    { product_id: 2, product_name: "milk", expiration_date: "2026-07-01" },
+    { product_id: 3, product_name: "cheese", expiration_date: "2026-06-05" }
+  ]},
+  47: { table: "tickets", columns: ["ticket_id","event_name","status"], rows: [
+    { ticket_id: "TIX-7721", event_name: "Summer Fest", status: "Confirmed" },
+    { ticket_id: "TIX-7722", event_name: "Summer Fest", status: "Confirmed" }
+  ]},
+  48: { table: "log_archive", columns: ["log_id","created_at"], rows: [
+    { log_id: 1, created_at: "2025-01-01" }
+  ]},
+  49: { table: "backup_inventory", columns: ["backup_id","snapshot_date"], rows: [
+    { backup_id: 1, snapshot_date: "2025-06-01" }
+  ]},
+  50: { table: "users", columns: ["user_id","username","user_type"], rows: [
+    { user_id: 1, username: "admin", user_type: "real" },
+    { user_id: 2, username: "test_bot1", user_type: "test" },
+    { user_id: 3, username: "jdoe", user_type: "real" },
+    { user_id: 4, username: "test_bot2", user_type: "test" }
+  ]}
+};
