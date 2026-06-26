@@ -1552,18 +1552,27 @@ a { text-decoration: none; color: inherit; }
   cursor: default;
   user-select: text;
 }
-.exam-schema-highlight {
-  pointer-events: none;
-  padding: 18px 18px 18px 16px;
-  margin: 0;
+.exam-schema-viewer .exam-code-area {
   overflow: auto;
+  position: relative;
+}
+.exam-schema-viewer .exam-code-gutter {
+  overflow: hidden;  /* gutter scrolls via JS sync only */
+}
+.exam-schema-highlight {
+  display: block;
+  position: static;
+  inset: auto;
+  padding: 18px 24px 18px 16px;
+  margin: 0;
   white-space: pre;
   line-height: 1.7;
   font-size: 13.5px;
   font-family: var(--font-mono);
   color: var(--text-base);
-  height: 100%;
-  box-sizing: border-box;
+  min-width: max-content;
+  pointer-events: none;
+  user-select: text;
 }
 
 .exam-code-editor {
