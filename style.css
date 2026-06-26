@@ -1530,6 +1530,42 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: .05em;
 }
 
+/* Tab active / inactive states */
+.exam-editor-tab.active {
+  background: var(--accent-bg);
+  color: var(--accent-2);
+  cursor: default;
+}
+.exam-editor-tab.inactive {
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.exam-editor-tab.inactive:hover {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+/* Schema viewer — read-only, scrollable */
+.exam-schema-viewer {
+  cursor: default;
+  user-select: text;
+}
+.exam-schema-highlight {
+  pointer-events: none;
+  padding: 18px 18px 18px 16px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+  line-height: 1.7;
+  font-size: 13.5px;
+  font-family: var(--font-mono);
+  color: var(--text-base);
+  height: 100%;
+  box-sizing: border-box;
+}
+
 .exam-code-editor {
   flex: 1;
   min-height: 0;

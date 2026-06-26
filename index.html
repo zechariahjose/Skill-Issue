@@ -400,24 +400,36 @@
         <!-- MIDDLE: compiler / editor -->
         <div class="exam-pane exam-pane-editor">
           <div class="exam-editor-tabbar">
-            <span class="exam-editor-tab">
+            <span class="exam-editor-tab active" id="tab-btn-answer" data-tab="answer">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
               answer.sql
             </span>
+            <span class="exam-editor-tab inactive" id="tab-btn-schema" data-tab="schema" style="display:none">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              schema.sql
+            </span>
             <span class="exam-editor-dialect">MySQL-ish</span>
           </div>
-          <div class="exam-code-editor">
+          <!-- answer.sql panel -->
+          <div class="exam-code-editor" id="exam-panel-answer">
             <div class="exam-code-gutter" id="exam-code-gutter">1</div>
             <div class="exam-code-area">
               <pre class="exam-code-highlight" id="exam-code-highlight" aria-hidden="true"><code>&nbsp;</code></pre>
               <textarea class="exam-editor-textarea" id="exam-answer-input" placeholder="Write your SQL statement here..." spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off"></textarea>
             </div>
           </div>
+          <!-- schema.sql panel (read-only) -->
+          <div class="exam-code-editor exam-schema-viewer" id="exam-panel-schema" style="display:none">
+            <div class="exam-code-gutter" id="exam-schema-gutter">1</div>
+            <div class="exam-code-area">
+              <pre class="exam-code-highlight exam-schema-highlight" id="exam-schema-highlight"><code>&nbsp;</code></pre>
+            </div>
+          </div>
           <div class="exam-editor-statusbar">
             <span id="exam-editor-cursor-pos">Ln 1, Col 1</span>
             <span class="exam-editor-statusbar-sep">•</span>
             <span id="exam-editor-charcount">0 chars</span>
-            <span class="exam-editor-statusbar-hint">Tab to indent · Ctrl+Enter to check</span>
+            <span class="exam-editor-statusbar-hint" id="exam-editor-statusbar-hint">Tab to indent · Ctrl+Enter to check</span>
           </div>
         </div>
 
