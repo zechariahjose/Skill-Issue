@@ -1222,6 +1222,222 @@ const EXAMS = [
         ]
       }
     ]
+  },
+  {
+    id: 1, title: "Pet Clinic SQL Exam", difficulty: "medium",
+    desc: "Practice CREATE, ALTER, INSERT, UPDATE, SELECT, and aggregate queries against a pet clinic schema.",
+    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M5 8h14"/><path d="M5 16h14"/></svg>`,
+    sections: [
+      {
+        title: "CREATE TABLE (1–5)",
+        instructions: "Write the CREATE TABLE statement for each scenario.",
+        questions: [
+          {
+            num: 1,
+            scenario: "Write the SQL statement to CREATE a table named Suppliers with supplier_id INT PRIMARY KEY and company_name VARCHAR(50), company_location VARCHAR(100).",
+            answer: `CREATE TABLE Suppliers (
+  supplier_id INT PRIMARY KEY,
+  company_name VARCHAR(50),
+  company_location VARCHAR(100)
+);`
+          },
+          {
+            num: 2,
+            scenario: "Write an SQL query to ALTER the Owners table to append a new column named emergency_contact_phone VARCHAR(20).",
+            answer: "ALTER TABLE Owners ADD COLUMN emergency_contact_phone VARCHAR(20);"
+          },
+          {
+            num: 3,
+            scenario: "Write an SQL query to INSERT a new service record into Services for an 'Aromatherapy Massage' under category 'Wellness' priced at 65.00 with a duration of 30 minutes.",
+            answer: "INSERT INTO Services (service_name, category, price, duration_minutes) VALUES ('Aromatherapy Massage', 'Wellness', 65.00, 30);"
+          },
+          {
+            num: 4,
+            scenario: "Write an SQL query to UPDATE all prices in the Services table, raising them uniformly by 5%.",
+            answer: "UPDATE Services SET price = price * 1.05;"
+          },
+          {
+            num: 5,
+            scenario: "Write an SQL UPDATE query on Beauty_Details that sets nail_trimming = FALSE for beauty_id = 601.",
+            answer: "UPDATE Beauty_Details SET nail_trimming = FALSE WHERE beauty_id = 601;"
+          }
+        ]
+      },
+      {
+        title: "SELECT Queries (6–15)",
+        instructions: "Write the SELECT statement for each scenario.",
+        questions: [
+          {
+            num: 6,
+            scenario: "Write an SQL query projecting only the first_name, last_name, and phone columns from the Owners table.",
+            answer: "SELECT first_name, last_name, phone FROM Owners;"
+          },
+          {
+            num: 7,
+            scenario: "Write an SQL query to pull the unique list of categories available in the Services table.",
+            answer: "SELECT DISTINCT category FROM Services;"
+          },
+          {
+            num: 8,
+            scenario: "Write an SQL query displaying only the appointment_id and total_cost columns for all Appointments.",
+            answer: "SELECT appointment_id, total_cost FROM Appointments;"
+          },
+          {
+            num: 9,
+            scenario: "Write an SQL query to return the diagnosis and treatment_plan fields for all medical details.",
+            answer: "SELECT diagnosis, treatment_plan FROM Medical_Details;"
+          },
+          {
+            num: 10,
+            scenario: "Write an SQL query to display service_name and calculate an explicit 15% price increase column for every item in Services.",
+            answer: "SELECT service_name, price * 1.15 AS increased_price FROM Services;"
+          },
+          {
+            num: 11,
+            scenario: "Write an SQL query to fetch rows from the Owners table where owner_id is an even number.",
+            answer: "SELECT * FROM Owners WHERE owner_id % 2 = 0;"
+          },
+          {
+            num: 12,
+            scenario: "Write an SQL query to subtract 15% from the total_cost of all appointments and tag the discounted cost as promotional_cost.",
+            answer: "SELECT total_cost * 0.85 AS promotional_cost FROM Appointments;"
+          },
+          {
+            num: 13,
+            scenario: "Write an SQL query using the WHERE clause to find all services where the price is strictly greater than 50.00.",
+            answer: "SELECT * FROM Services WHERE price > 50.00;"
+          },
+          {
+            num: 14,
+            scenario: "Write an SQL query to isolate appointments where the total_cost is less than or equal to 40.00.",
+            answer: "SELECT * FROM Appointments WHERE total_cost <= 40.00;"
+          },
+          {
+            num: 15,
+            scenario: "Write an SQL query to list all staff members who are not 'Veterinarian'.",
+            answer: "SELECT * FROM Staff WHERE role != 'Veterinarian';"
+          }
+        ]
+      },
+      {
+        title: "WHERE & Operators (16–24)",
+        instructions: "Write the query using the specified clause or operator.",
+        questions: [
+          {
+            num: 16,
+            scenario: "Write an SQL query to find pets born before January 1, 2022 (birth_date < '2022-01-01').",
+            answer: "SELECT * FROM Pets WHERE birth_date < '2022-01-01';"
+          },
+          {
+            num: 17,
+            scenario: "Write an SQL query from Medical_Details to isolate cases where temperature_c exceeded 39.0.",
+            answer: "SELECT * FROM Medical_Details WHERE temperature_c > 39.0;"
+          },
+          {
+            num: 18,
+            scenario: "Write an SQL update query to deduct 5.50 from the total cost of appointment 1001 using a compound assignment operator.",
+            answer: "UPDATE Appointments SET total_cost -= 5.50 WHERE appointment_id = 1001;"
+          },
+          {
+            num: 19,
+            scenario: "Write an SQL query using a compound assignment operator to double the duration length metric of service 1.",
+            answer: "UPDATE Services SET duration_minutes *= 2 WHERE service_id = 1;"
+          },
+          {
+            num: 20,
+            scenario: "Write an SQL query to filter for services where the category is 'Medical' AND the price is between 50.00 and 70.00.",
+            answer: "SELECT * FROM Services WHERE category = 'Medical' AND price BETWEEN 50.00 AND 70.00;"
+          },
+          {
+            num: 21,
+            scenario: "Write an SQL query to find appointments where the status is 'Scheduled' OR the status is 'Completed'.",
+            answer: "SELECT * FROM Appointments WHERE status = 'Scheduled' OR status = 'Completed';"
+          },
+          {
+            num: 22,
+            scenario: "Write an SQL query using NOT to isolate pets that are neither 'Dog' nor 'Cat' species types.",
+            answer: "SELECT * FROM Pets WHERE NOT (species = 'Dog' OR species = 'Cat');"
+          },
+          {
+            num: 23,
+            scenario: "Write an SQL query using IN to locate all pets belonging to owners 1, 3, or 5.",
+            answer: "SELECT * FROM Pets WHERE owner_id IN (1, 3, 5);"
+          },
+          {
+            num: 24,
+            scenario: "Write an SQL query using BETWEEN to identify appointments scheduled between June 20 and June 23, 2026.",
+            answer: "SELECT * FROM Appointments WHERE appointment_timestamp BETWEEN '2026-06-20' AND '2026-06-23';"
+          }
+        ]
+      },
+      {
+        title: "Pattern Matching & Ordering (25–33)",
+        instructions: "Write the query that matches the requested pattern, filtering, ordering, or aggregation behavior.",
+        questions: [
+          {
+            num: 25,
+            scenario: "Write an SQL query to show all owners whose last_name begins with the letter 'V'.",
+            answer: "SELECT * FROM Owners WHERE last_name LIKE 'V%';"
+          },
+          {
+            num: 26,
+            scenario: "Write an SQL query to search the Services table for descriptions that contain the keyword phrase 'Therapy' anywhere within the string.",
+            answer: "SELECT * FROM Services WHERE service_name LIKE '%Therapy%';"
+          },
+          {
+            num: 27,
+            scenario: "Write an SQL query for the Owners table to find any record using an email domain ending with .org.",
+            answer: "SELECT * FROM Owners WHERE email LIKE '%.org';"
+          },
+          {
+            num: 28,
+            scenario: "Write an SQL query to fetch pets sorted by their birth_date from youngest to oldest.",
+            answer: "SELECT * FROM Pets ORDER BY birth_date DESC;"
+          },
+          {
+            num: 29,
+            scenario: "Write an SQL query to retrieve all staff members sorted alphabetically by role and then by last_name.",
+            answer: "SELECT * FROM Staff ORDER BY role ASC, last_name ASC;"
+          },
+          {
+            num: 30,
+            scenario: "Write an SQL query using MIN() and MAX() to return the lowest and highest pet weights tracked in Medical_Details.",
+            answer: "SELECT MIN(weight_kg) AS min_weight, MAX(weight_kg) AS max_weight FROM Medical_Details;"
+          },
+          {
+            num: 31,
+            scenario: "Write an SQL query using COUNT and DISTINCT to determine how many unique species are in the Pets table.",
+            answer: "SELECT COUNT(DISTINCT species) AS unique_species_count FROM Pets;"
+          },
+          {
+            num: 32,
+            scenario: "Write an SQL query using LIMIT to show the three most expensive services from the catalog.",
+            answer: "SELECT * FROM Services WHERE price > 120 ORDER BY price DESC LIMIT 3;"
+          },
+          {
+            num: 33,
+            scenario: "Write an SQL query to project the first two appointments scheduled chronologically.",
+            answer: "SELECT * FROM Appointments ORDER BY appointment_timestamp ASC LIMIT 2;"
+          }
+        ]
+      },
+      {
+        title: "Grouping & Aggregates (34–35)",
+        instructions: "Write the grouped aggregate query requested.",
+        questions: [
+          {
+            num: 34,
+            scenario: "Write an SQL query to display the total number of services offered in each category and group the results by category.",
+            answer: "SELECT category, COUNT(*) AS service_count FROM Services GROUP BY category;"
+          },
+          {
+            num: 35,
+            scenario: "Write an SQL query to calculate the count and total earnings per status category and order by count descending.",
+            answer: "SELECT status, COUNT(*) AS count, SUM(total_cost) AS total_revenue FROM Appointments GROUP BY status ORDER BY count DESC;"
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -1426,5 +1642,166 @@ const EXAM_SEEDS = {
     { user_id: 2, username: "test_bot1", user_type: "test" },
     { user_id: 3, username: "jdoe", user_type: "real" },
     { user_id: 4, username: "test_bot2", user_type: "test" }
+  ]},
+
+  // ---- Pet clinic exam (1–35) ----
+  1: { table: "Suppliers", columns: ["supplier_id","company_name","company_location"], rows: [] },
+  2: { table: "Owners", columns: ["owner_id","first_name","last_name","phone","email","created_at","emergency_contact_phone"], rows: [
+    { owner_id: 1, first_name: "Mina", last_name: "Lopez", phone: "555-1010", email: "mina@example.com", created_at: "2025-01-01", emergency_contact_phone: null },
+    { owner_id: 2, first_name: "Noel", last_name: "Rivera", phone: "555-2020", email: "noel@example.com", created_at: "2025-01-02", emergency_contact_phone: null }
+  ]},
+  3: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 }
+  ]},
+  4: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 }
+  ]},
+  5: { table: "Beauty_Details", columns: ["beauty_id","appointment_id","haircut_style","shampoo_type","nail_trimming","ear_cleaning","grooming_notes"], rows: [
+    { beauty_id: 601, appointment_id: 1001, haircut_style: "Poodle", shampoo_type: "Oatmeal", nail_trimming: true, ear_cleaning: true, grooming_notes: "Regular check" },
+    { beauty_id: 602, appointment_id: 1002, haircut_style: "Short Trim", shampoo_type: "Tea Tree", nail_trimming: false, ear_cleaning: true, grooming_notes: "Needs calm handling" }
+  ]},
+  6: { table: "Owners", columns: ["owner_id","first_name","last_name","phone","email","created_at"], rows: [
+    { owner_id: 1, first_name: "Mina", last_name: "Lopez", phone: "555-1010", email: "mina@example.com", created_at: "2025-01-01" },
+    { owner_id: 2, first_name: "Noel", last_name: "Rivera", phone: "555-2020", email: "noel@example.com", created_at: "2025-01-02" }
+  ]},
+  7: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 60.00, duration_minutes: 30 }
+  ]},
+  8: { table: "Appointments", columns: ["appointment_id","total_cost"], rows: [
+    { appointment_id: 1001, total_cost: 90.00 },
+    { appointment_id: 1002, total_cost: 35.50 },
+    { appointment_id: 1003, total_cost: 25.00 }
+  ]},
+  9: { table: "Medical_Details", columns: ["medical_id","diagnosis","treatment_plan"], rows: [
+    { medical_id: 1, diagnosis: "Allergy", treatment_plan: "Monitor diet" },
+    { medical_id: 2, diagnosis: "Ear Infection", treatment_plan: "Antibiotics" }
+  ]},
+  10: { table: "Services", columns: ["service_id","service_name","price"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", price: 80.00 },
+    { service_id: 2, service_name: "Grooming", price: 40.00 }
+  ]},
+  11: { table: "Owners", columns: ["owner_id","first_name","last_name","phone","email","created_at"], rows: [
+    { owner_id: 1, first_name: "Mina", last_name: "Lopez", phone: "555-1010", email: "mina@example.com", created_at: "2025-01-01" },
+    { owner_id: 2, first_name: "Noel", last_name: "Rivera", phone: "555-2020", email: "noel@example.com", created_at: "2025-01-02" },
+    { owner_id: 3, first_name: "Tia", last_name: "Nguyen", phone: "555-3030", email: "tia@example.com", created_at: "2025-01-03" }
+  ]},
+  12: { table: "Appointments", columns: ["appointment_id","total_cost"], rows: [
+    { appointment_id: 1001, total_cost: 90.00 },
+    { appointment_id: 1002, total_cost: 35.50 },
+    { appointment_id: 1003, total_cost: 25.00 }
+  ]},
+  13: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 60.00, duration_minutes: 30 }
+  ]},
+  14: { table: "Appointments", columns: ["appointment_id","total_cost"], rows: [
+    { appointment_id: 1001, total_cost: 90.00 },
+    { appointment_id: 1002, total_cost: 35.50 },
+    { appointment_id: 1003, total_cost: 25.00 }
+  ]},
+  15: { table: "Staff", columns: ["staff_id","first_name","last_name","role","phone","is_active"], rows: [
+    { staff_id: 1, first_name: "Lina", last_name: "Hart", role: "Veterinarian", phone: "555-0101", is_active: true },
+    { staff_id: 2, first_name: "Omar", last_name: "Bennett", role: "Assistant", phone: "555-0102", is_active: true }
+  ]},
+  16: { table: "Pets", columns: ["pet_id","owner_id","name","species","breed","birth_date","allergies_or_notes"], rows: [
+    { pet_id: 1, owner_id: 1, name: "Mochi", species: "Dog", breed: "Shih Tzu", birth_date: "2020-12-01", allergies_or_notes: "None" },
+    { pet_id: 2, owner_id: 2, name: "Pip", species: "Cat", breed: "Siamese", birth_date: "2021-02-14", allergies_or_notes: "none" },
+    { pet_id: 3, owner_id: 3, name: "Biscuit", species: "Rabbit", breed: "Mini Rex", birth_date: "2023-01-05", allergies_or_notes: "None" }
+  ]},
+  17: { table: "Medical_Details", columns: ["medical_id","appointment_id","weight_kg","temperature_c","symptoms_reported","diagnosis","treatment_plan","follow_up_required"], rows: [
+    { medical_id: 1, appointment_id: 1001, weight_kg: 6.5, temperature_c: 38.2, symptoms_reported: "Lethargy", diagnosis: "Cold", treatment_plan: "Rest", follow_up_required: false },
+    { medical_id: 2, appointment_id: 1002, weight_kg: 5.8, temperature_c: 40.1, symptoms_reported: "Fever", diagnosis: "Flu", treatment_plan: "Medication", follow_up_required: true }
+  ]},
+  18: { table: "Appointments", columns: ["appointment_id","total_cost"], rows: [
+    { appointment_id: 1001, total_cost: 90.00 },
+    { appointment_id: 1002, total_cost: 35.50 },
+    { appointment_id: 1003, total_cost: 25.00 }
+  ]},
+  19: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 }
+  ]},
+  20: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 60.00, duration_minutes: 30 }
+  ]},
+  21: { table: "Appointments", columns: ["appointment_id","status","total_cost"], rows: [
+    { appointment_id: 1001, status: "Scheduled", total_cost: 90.00 },
+    { appointment_id: 1002, status: "Completed", total_cost: 35.50 },
+    { appointment_id: 1003, status: "Canceled", total_cost: 25.00 }
+  ]},
+  22: { table: "Pets", columns: ["pet_id","owner_id","name","species","breed","birth_date","allergies_or_notes"], rows: [
+    { pet_id: 1, owner_id: 1, name: "Mochi", species: "Dog", breed: "Shih Tzu", birth_date: "2020-12-01", allergies_or_notes: "None" },
+    { pet_id: 2, owner_id: 2, name: "Pip", species: "Cat", breed: "Siamese", birth_date: "2021-02-14", allergies_or_notes: "none" },
+    { pet_id: 3, owner_id: 3, name: "Biscuit", species: "Rabbit", breed: "Mini Rex", birth_date: "2023-01-05", allergies_or_notes: "None" }
+  ]},
+  23: { table: "Pets", columns: ["pet_id","owner_id","name","species","breed","birth_date","allergies_or_notes"], rows: [
+    { pet_id: 1, owner_id: 1, name: "Mochi", species: "Dog", breed: "Shih Tzu", birth_date: "2020-12-01", allergies_or_notes: "None" },
+    { pet_id: 2, owner_id: 2, name: "Pip", species: "Cat", breed: "Siamese", birth_date: "2021-02-14", allergies_or_notes: "none" },
+    { pet_id: 3, owner_id: 3, name: "Biscuit", species: "Rabbit", breed: "Mini Rex", birth_date: "2023-01-05", allergies_or_notes: "None" }
+  ]},
+  24: { table: "Appointments", columns: ["appointment_id","appointment_timestamp","status","total_cost"], rows: [
+    { appointment_id: 1001, appointment_timestamp: "2026-06-20T09:00:00.000Z", status: "Scheduled", total_cost: 90.00 },
+    { appointment_id: 1002, appointment_timestamp: "2026-06-21T10:30:00.000Z", status: "Completed", total_cost: 35.50 },
+    { appointment_id: 1003, appointment_timestamp: "2026-06-24T11:15:00.000Z", status: "Canceled", total_cost: 25.00 }
+  ]},
+  25: { table: "Owners", columns: ["owner_id","first_name","last_name","phone","email","created_at"], rows: [
+    { owner_id: 1, first_name: "Mina", last_name: "Lopez", phone: "555-1010", email: "mina@example.com", created_at: "2025-01-01" },
+    { owner_id: 2, first_name: "Noel", last_name: "Rivera", phone: "555-2020", email: "noel@example.com", created_at: "2025-01-02" },
+    { owner_id: 3, first_name: "Vera", last_name: "Vance", phone: "555-3030", email: "vera@example.org", created_at: "2025-01-03" }
+  ]},
+  26: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Therapy Bath", category: "Wellness", price: 40.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 60.00, duration_minutes: 30 }
+  ]},
+  27: { table: "Owners", columns: ["owner_id","first_name","last_name","phone","email","created_at"], rows: [
+    { owner_id: 1, first_name: "Mina", last_name: "Lopez", phone: "555-1010", email: "mina@example.com", created_at: "2025-01-01" },
+    { owner_id: 2, first_name: "Noel", last_name: "Rivera", phone: "555-2020", email: "noel@example.org", created_at: "2025-01-02" }
+  ]},
+  28: { table: "Pets", columns: ["pet_id","owner_id","name","species","breed","birth_date","allergies_or_notes"], rows: [
+    { pet_id: 1, owner_id: 1, name: "Mochi", species: "Dog", breed: "Shih Tzu", birth_date: "2020-12-01", allergies_or_notes: "None" },
+    { pet_id: 2, owner_id: 2, name: "Pip", species: "Cat", breed: "Siamese", birth_date: "2021-02-14", allergies_or_notes: "none" },
+    { pet_id: 3, owner_id: 3, name: "Biscuit", species: "Rabbit", breed: "Mini Rex", birth_date: "2023-01-05", allergies_or_notes: "None" }
+  ]},
+  29: { table: "Staff", columns: ["staff_id","first_name","last_name","role","phone","is_active"], rows: [
+    { staff_id: 1, first_name: "Lina", last_name: "Hart", role: "Veterinarian", phone: "555-0101", is_active: true },
+    { staff_id: 2, first_name: "Omar", last_name: "Bennett", role: "Assistant", phone: "555-0102", is_active: true }
+  ]},
+  30: { table: "Medical_Details", columns: ["medical_id","appointment_id","weight_kg","temperature_c","symptoms_reported","diagnosis","treatment_plan","follow_up_required"], rows: [
+    { medical_id: 1, appointment_id: 1001, weight_kg: 6.5, temperature_c: 38.2, symptoms_reported: "Lethargy", diagnosis: "Cold", treatment_plan: "Rest", follow_up_required: false },
+    { medical_id: 2, appointment_id: 1002, weight_kg: 5.8, temperature_c: 40.1, symptoms_reported: "Fever", diagnosis: "Flu", treatment_plan: "Medication", follow_up_required: true }
+  ]},
+  31: { table: "Pets", columns: ["pet_id","owner_id","name","species","breed","birth_date","allergies_or_notes"], rows: [
+    { pet_id: 1, owner_id: 1, name: "Mochi", species: "Dog", breed: "Shih Tzu", birth_date: "2020-12-01", allergies_or_notes: "None" },
+    { pet_id: 2, owner_id: 2, name: "Pip", species: "Cat", breed: "Siamese", birth_date: "2021-02-14", allergies_or_notes: "none" },
+    { pet_id: 3, owner_id: 3, name: "Biscuit", species: "Rabbit", breed: "Mini Rex", birth_date: "2023-01-05", allergies_or_notes: "None" }
+  ]},
+  32: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Therapy Bath", category: "Wellness", price: 140.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 160.00, duration_minutes: 30 },
+    { service_id: 4, service_name: "Grooming", category: "Beauty", price: 40.00, duration_minutes: 60 }
+  ]},
+  33: { table: "Appointments", columns: ["appointment_id","appointment_timestamp","status","total_cost"], rows: [
+    { appointment_id: 1001, appointment_timestamp: "2026-06-20T09:00:00.000Z", status: "Scheduled", total_cost: 90.00 },
+    { appointment_id: 1002, appointment_timestamp: "2026-06-21T10:30:00.000Z", status: "Completed", total_cost: 35.50 },
+    { appointment_id: 1003, appointment_timestamp: "2026-06-24T11:15:00.000Z", status: "Canceled", total_cost: 25.00 }
+  ]},
+  34: { table: "Services", columns: ["service_id","service_name","category","price","duration_minutes"], rows: [
+    { service_id: 1, service_name: "Dental Cleaning", category: "Medical", price: 80.00, duration_minutes: 45 },
+    { service_id: 2, service_name: "Therapy Bath", category: "Wellness", price: 140.00, duration_minutes: 60 },
+    { service_id: 3, service_name: "Hydrotherapy", category: "Wellness", price: 160.00, duration_minutes: 30 }
+  ]},
+  35: { table: "Appointments", columns: ["appointment_id","status","total_cost"], rows: [
+    { appointment_id: 1001, status: "Scheduled", total_cost: 90.00 },
+    { appointment_id: 1002, status: "Completed", total_cost: 35.50 },
+    { appointment_id: 1003, status: "Canceled", total_cost: 25.00 }
   ]}
 };

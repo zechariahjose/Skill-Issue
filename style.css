@@ -1651,7 +1651,13 @@ a { text-decoration: none; color: inherit; }
 .exam-testcase-block { display: grid; gap: 10px; }
 .testcase-block-item { display: grid; gap: 6px; }
 .testcase-label { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
-.testcase-block-item .result-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.testcase-block-item .result-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+}
+.testcase-block-item .result-table { width: 100%; min-width: 220px; border-collapse: collapse; font-size: 11.5px; }
 .testcase-block-item .result-table th,
 .testcase-block-item .result-table td { padding: 6px 9px; border: 1px solid rgba(255,255,255,0.08); text-align: left; }
 .testcase-block-item .result-table th { background: rgba(124,106,247,0.08); color: var(--accent-2); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }

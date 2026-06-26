@@ -551,6 +551,12 @@ function parseAndRun(sql, db) {
       // Count
       const countMatch = selectPart.match(/COUNT\(\*\)(?:\s+AS\s+(\w+))?/i);
       if (countMatch) out[countMatch[1] || 'count'] = g._rows.length;
+      const countDistinctMatch = selectPart.match(/COUNT\(DISTINCT\s+(\w+)\)(?:\s+AS\s+(\w+))?/i);
+      if (countDistinctMatch) {
+        const col = countDistinctMatch[1];
+        const alias = countDistinctMatch[2] || 'count';
+        out[alias] = new Set(g._rows.map(r => r[col]).filter(v => v != null)).size;
+      }
       const sumMatch = selectPart.match(/SUM\((\w+)\)(?:\s+AS\s+(\w+))?/i);
       if (sumMatch) out[sumMatch[2] || 'sum'] = g._rows.reduce((a, r) => a + (r[sumMatch[1]] || 0), 0);
       const avgMatch = selectPart.match(/AVG\((\w+)\)(?:\s+AS\s+(\w+))?/i);
@@ -566,11 +572,13 @@ function parseAndRun(sql, db) {
     const selectPart = sql.match(/^SELECT(.*?)FROM/is)[1];
     const avgMatch = selectPart.match(/AVG\((\w+)\)(?:\s+AS\s+(\w+))?/i);
     const countMatch = selectPart.match(/COUNT\(\*\)(?:\s+AS\s+(\w+))?/i) || selectPart.match(/COUNT\((\w+)\)(?:\s+AS\s+(\w+))?/i);
+    const countDistinctMatch = selectPart.match(/COUNT\(DISTINCT\s+(\w+)\)(?:\s+AS\s+(\w+))?/i);
     const sumMatch = selectPart.match(/SUM\((\w+)\)(?:\s+AS\s+(\w+))?/i);
-    if (avgMatch || (countMatch && selectPart.match(/COUNT/i)) || sumMatch) {
+    if (avgMatch || (countMatch && selectPart.match(/COUNT/i)) || countDistinctMatch || sumMatch) {
       const out = {};
       if (avgMatch) { const vals = rows.map(r => r[avgMatch[1]]).filter(v => v != null); out[avgMatch[2] || 'avg'] = vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null; }
       if (countMatch) out[countMatch[2] || countMatch[1] || 'count'] = rows.length;
+      if (countDistinctMatch) out[countDistinctMatch[2] || 'count'] = new Set(rows.map(r => r[countDistinctMatch[1]]).filter(v => v != null)).size;
       if (sumMatch) out[sumMatch[2] || 'sum'] = rows.reduce((a, r) => a + (r[sumMatch[1]] || 0), 0);
       rows = [out];
     }
@@ -585,13 +593,16 @@ function parseAndRun(sql, db) {
       colDefs.forEach(def => {
         if (/COUNT|SUM|AVG|MAX|MIN/i.test(def)) return; // already handled
         const asMatch = def.match(/(.+?)\s+AS\s+(\w+)/i);
-        if (asMatch) {
-          const raw = asMatch[1].trim().split('.').pop();
-          out[asMatch[2]] = r[raw] !== undefined ? r[raw] : null;
-        } else {
-          const col = def.split('.').pop();
-          if (r[col] !== undefined) out[col] = r[col];
-          else if (r[def] !== undefined) out[def] = r[def];
+        const expr = asMatch ? asMatch[1].trim() : def.trim();
+        const alias = asMatch ? asMatch[2] : expr.split('.').pop();
+        try {
+          const normalized = expr.replace(/([A-Za-z_][A-Za-z0-9_]*)/g, (match) => r[match] !== undefined ? `r["${match}"]` : match);
+          out[alias] = Function('r', '"use strict"; return (' + normalized + ')')(r);
+        } catch {
+          const col = expr.split('.').pop();
+          if (r[col] !== undefined) out[alias] = r[col];
+          else if (r[expr] !== undefined) out[alias] = r[expr];
+          else out[alias] = null;
         }
       });
       // Keep aggregate keys
@@ -646,6 +657,8 @@ function evalWhere(cond, row) {
   });
   // Handle BETWEEN
   c = c.replace(/(\w+)\s+BETWEEN\s+([^\s]+)\s+AND\s+([^\s,)]+)/gi, (_, col, lo, hi) => `(row["${col}"] >= ${lo} && row["${col}"] <= ${hi})`);
+  // Handle modulo checks like owner_id % 2 = 0
+  c = c.replace(/(\w+)\s*%\s*(\d+\.\d+|\d+)\s*=\s*(\d+\.\d+|\d+)/gi, (_, col, mod, val) => `(row["${col}"] % ${mod} == ${val})`);
   // Handle IN
   c = c.replace(/(\w+)\s+IN\s*\(([^)]+)\)/gi, (_, col, vals) => `[${vals}].includes(row["${col}"])`);
   // Handle col = 'str' and col = number
@@ -721,11 +734,86 @@ function openChallenge(id) {
 // ============================================================
 //  EXAMS
 // ============================================================
+const PET_CLINIC_SCHEMA_SQL = `CREATE TABLE Owners (
+    owner_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE Pets (
+    pet_id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_id INT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    species VARCHAR(30) NOT NULL,
+    breed VARCHAR(50),
+    birth_date DATE,
+    allergies_or_notes TEXT,
+    FOREIGN KEY (owner_id) REFERENCES Owners(owner_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Staff (
+    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    phone VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE Services (
+    service_id INT AUTO_INCREMENT PRIMARY KEY,
+    service_name VARCHAR(100) NOT NULL,
+    category ENUM('Medical', 'Beauty', 'Wellness', 'Recreation') NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    duration_minutes INT NOT NULL
+);
+
+CREATE TABLE Appointments (
+    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+    pet_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    service_id INT NOT NULL,
+    appointment_timestamp DATETIME NOT NULL,
+    status ENUM('Scheduled', 'Completed', 'Canceled', 'No-Show') DEFAULT 'Scheduled',
+    total_cost DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (pet_id) REFERENCES Pets(pet_id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_id) REFERENCES Staff(staff_id),
+    FOREIGN KEY (service_id) REFERENCES Services(service_id)
+);
+
+CREATE TABLE Medical_Details (
+    medical_id INT AUTO_INCREMENT PRIMARY KEY,
+    appointment_id INT UNIQUE NOT NULL,
+    weight_kg DECIMAL(5, 2),
+    temperature_c DECIMAL(4, 1),
+    symptoms_reported TEXT,
+    diagnosis TEXT,
+    treatment_plan TEXT,
+    follow_up_required BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Beauty_Details (
+    beauty_id INT AUTO_INCREMENT PRIMARY KEY,
+    appointment_id INT UNIQUE NOT NULL,
+    haircut_style VARCHAR(100),
+    shampoo_type VARCHAR(50),
+    nail_trimming BOOLEAN DEFAULT TRUE,
+    ear_cleaning BOOLEAN DEFAULT TRUE,
+    grooming_notes TEXT,
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id) ON DELETE CASCADE
+);`;
+
 function renderExamHome() {
   const grid = document.getElementById('exams-home-grid');
   if (!grid) return;
   grid.innerHTML = '';
   EXAMS.forEach(exam => {
+    const questionCount = exam.sections.reduce((sum, section) => sum + section.questions.length, 0);
     const card = document.createElement('div');
     card.className = 'lesson-card';
     card.innerHTML = `
@@ -734,7 +822,7 @@ function renderExamHome() {
       <div class="lesson-card-desc">${exam.desc}</div>
       <div class="lesson-card-footer">
         <span class="badge badge-${exam.difficulty}">${exam.difficulty}</span>
-        <span class="lesson-card-time">50 questions</span>
+        <span class="lesson-card-time">${questionCount} questions</span>
       </div>`;
     card.addEventListener('click', () => startExam(exam.id));
     grid.appendChild(card);
@@ -791,7 +879,8 @@ function renderExamQuestion() {
   document.getElementById('exam-answer-hint').textContent = qData.section.instructions;
 
   const inputArea = document.getElementById('exam-answer-input');
-  inputArea.value = examAnswers[examQ] || '';
+  const hasStarterContent = activeExam.id === 1 && examQ === 0 && !examAnswers[examQ];
+  inputArea.value = examAnswers[examQ] ?? (hasStarterContent ? PET_CLINIC_SCHEMA_SQL : '');
   updateExamEditorView();
 
   const fb = document.getElementById('exam-feedback');
@@ -935,6 +1024,14 @@ function examCloneRows(rows) {
   return (rows || []).map(r => ({ ...r }));
 }
 
+function evalExpression(expr, row) {
+  const normalized = String(expr).trim().replace(/([A-Za-z_][A-Za-z0-9_]*)/g, (match) => {
+    if (row[match] !== undefined) return `row["${match}"]`;
+    return match;
+  });
+  return Function('row', `"use strict"; return (${normalized})`)(row);
+}
+
 function examSplitTopLevel(str, sep) {
   const parts = [];
   let depth = 0, inQuote = null, cur = '';
@@ -989,23 +1086,31 @@ function examParseWhere(whereStr, row) {
 
 function examParseSet(setStr) {
   return examSplitTopLevel(setStr, ',').map(a => {
-    const eq = a.indexOf('=');
-    return { col: a.slice(0, eq).trim(), rhs: a.slice(eq + 1).trim() };
+    const opMatch = a.match(/^(\w+)\s*(\+=|-=|\*=|\/=|=)/);
+    const op = opMatch ? opMatch[2] : '=';
+    const col = opMatch ? opMatch[1].trim() : a.slice(0, a.indexOf('=')).trim();
+    const rhs = opMatch ? a.slice(opMatch[0].length).trim() : a.slice(a.indexOf('=') + 1).trim();
+    return { col, op, rhs };
   });
 }
 
 function examApplySet(row, assigns) {
-  assigns.forEach(({ col, rhs }) => {
+  assigns.forEach(({ col, op, rhs }) => {
     const exprMatch = rhs.match(/^([\w.]+)\s*([*+\-/])\s*(-?\d+(?:\.\d+)?)$/);
     if (exprMatch) {
       const refCol = exprMatch[1].split('.').pop();
-      const op = exprMatch[2];
+      const mathOp = exprMatch[2];
       const num = parseFloat(exprMatch[3]);
       const base = parseFloat(row[refCol]) || 0;
-      let result = op === '*' ? base * num : op === '+' ? base + num : op === '-' ? base - num : base / num;
+      let result = mathOp === '*' ? base * num : mathOp === '+' ? base + num : mathOp === '-' ? base - num : base / num;
       row[col] = Math.round(result * 100) / 100;
     } else {
-      row[col] = examParseValue(rhs);
+      const currentValue = row[col];
+      if (op === '+=' ) row[col] = (parseFloat(currentValue) || 0) + (parseFloat(examParseValue(rhs)) || 0);
+      else if (op === '-=') row[col] = (parseFloat(currentValue) || 0) - (parseFloat(examParseValue(rhs)) || 0);
+      else if (op === '*=') row[col] = (parseFloat(currentValue) || 0) * (parseFloat(examParseValue(rhs)) || 0);
+      else if (op === '/=') row[col] = (parseFloat(currentValue) || 0) / (parseFloat(examParseValue(rhs)) || 0);
+      else row[col] = examParseValue(rhs);
     }
   });
   return row;
@@ -1144,13 +1249,13 @@ function formatCellValue(v) {
 
 function renderTableSnapshotHtml(columns, rows) {
   if (!columns || !columns.length) return '<div class="placeholder">No columns to display.</div>';
-  let html = `<table class="result-table"><thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody>`;
+  let html = `<div class="result-table-wrap"><table class="result-table"><thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody>`;
   if (!rows || !rows.length) {
     html += `<tr><td colspan="${columns.length}" class="placeholder-cell">0 rows</td></tr>`;
   } else {
     html += rows.map(r => `<tr>${columns.map(c => `<td>${formatCellValue(r[c])}</td>`).join('')}</tr>`).join('');
   }
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   return html;
 }
 
@@ -1158,7 +1263,7 @@ function examRenderResult(result) {
   if (!result) return '<div class="placeholder">No output yet.</div>';
   if (result.kind === 'schema') {
     if (!result.columns.length) return '<div class="placeholder">No columns defined.</div>';
-    return `<table class="result-table"><thead><tr>${result.columns.map(c => `<th>${escapeHtml(c.name)}</th>`).join('')}</tr></thead><tbody><tr>${result.columns.map(c => `<td class="type-cell">${escapeHtml(c.type || '')}</td>`).join('')}</tr></tbody></table>`;
+    return `<div class="result-table-wrap"><table class="result-table"><thead><tr>${result.columns.map(c => `<th>${escapeHtml(c.name)}</th>`).join('')}</tr></thead><tbody><tr>${result.columns.map(c => `<td class="type-cell">${escapeHtml(c.type || '')}</td>`).join('')}</tr></tbody></table></div>`;
   }
   if (result.kind === 'dropped') {
     return `<div class="dropped-note">Table <code>${escapeHtml(result.table || '')}</code> dropped — no columns or rows remain.</div>`;
@@ -1166,10 +1271,17 @@ function examRenderResult(result) {
   return renderTableSnapshotHtml(result.columns, result.rows);
 }
 
+function getExamSeedForQuestion(qData) {
+  if (!qData || !activeExam) return null;
+  const byExamKey = EXAM_SEEDS[`${activeExam.id}:${qData.question.num}`];
+  if (byExamKey) return byExamKey;
+  return EXAM_SEEDS[qData.question.num] || null;
+}
+
 function renderExamRightPanel(qData, userResult, userError, checked) {
   const list = document.getElementById('exam-testcases-list');
   if (!list) return;
-  const seed = EXAM_SEEDS[qData.question.num] || null;
+  const seed = getExamSeedForQuestion(qData);
 
   let expectedResult = null, expectedFailed = false;
   try { expectedResult = examRunStatement(qData.question.answer, seed); }
@@ -1223,7 +1335,7 @@ function checkExamAnswer() {
   if (checkBtn) { checkBtn.disabled = true; checkBtn.textContent = 'Running...'; }
 
   setTimeout(() => {
-    const seed = EXAM_SEEDS[qData.question.num] || null;
+    const seed = getExamSeedForQuestion(qData);
     let userResult = null, userError = null;
     try { userResult = examRunStatement(userSql, seed); }
     catch (e) { userError = e.message; }
