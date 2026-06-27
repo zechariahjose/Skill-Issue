@@ -1226,7 +1226,10 @@ function updateExamEditorView() {
   if (!ta) return;
   const code = ta.value;
 
-  if (hl) hl.innerHTML = `<code>${examHighlightSQL(code)}\n</code>`;
+  // Append a trailing newline so the highlight pre always matches
+  // the textarea height exactly (browsers add a blank line after the
+  // last \n in a textarea that a plain pre won't otherwise render).
+  if (hl) hl.innerHTML = examHighlightSQL(code) + '\n';
 
   if (gutter) {
     const lineCount = code.split('\n').length;
@@ -1236,6 +1239,10 @@ function updateExamEditorView() {
   }
 
   if (charCount) charCount.textContent = `${code.length} char${code.length === 1 ? '' : 's'}`;
+
+  // Keep highlight scrolled to match textarea after content changes
+  if (hl) { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; }
+  if (gutter) gutter.scrollTop = ta.scrollTop;
 
   updateExamCursorPos();
 }

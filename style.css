@@ -1613,9 +1613,12 @@ a { text-decoration: none; color: inherit; }
   font-size: 13.5px;
   line-height: 1.7;
   white-space: pre;
-  overflow: auto;
+  overflow: hidden;
   box-sizing: border-box;
   border: none;
+  word-spacing: normal;
+  letter-spacing: normal;
+  tab-size: 2;
 }
 .exam-code-highlight {
   color: var(--text);
@@ -1631,6 +1634,7 @@ a { text-decoration: none; color: inherit; }
   caret-color: var(--text);
   outline: none;
   z-index: 1;
+  overflow: auto;
 }
 .exam-editor-textarea::placeholder { color: var(--text-faint); -webkit-text-fill-color: var(--text-faint); }
 .exam-editor-textarea::selection { background: rgba(124,106,247,0.35); }
